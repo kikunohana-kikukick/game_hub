@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Minecraft-like Game with Terrain and Physics</title>
+    <title>3D Minecraft-like Game with Real-time Terrain and Mouse Control</title>
     <style>
         body { margin: 0; overflow: hidden; }
+        canvas { cursor: crosshair; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
 </head>
 <body>
-<script type="module">
-import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.18.0/dist/cannon-es.js';
-import SimplexNoise from 'https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js';
-
+<script>
 // シーン、カメラ、レンダラーの設定
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -37,29 +37,89 @@ const playerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
 scene.add(playerMesh);
 
+// プレイヤーの初期設定
+const terrainSize = 10; // 各チャンクの大きさ
+let currentChunk = { x: 0, z: 0 }; // 現在のチャンク
+
+// マウス移動量の管理
+let pitch = 0, yaw = 0;
+document.addEventListener('mousemove', (event) => {
+    const sensitivity = 0.002;
+    yaw -= event.movementX * sensitivity;
+    pitch -= event.movementY * sensitivity;
+    pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch)); // カメラの上下制限
+});
+
 // パーリンノイズを使ってリアルな地形を生成
 const simplex = new SimplexNoise();
-function createTerrain(size, scale, height) {
+const terrainChunks = new Map(); // チャンクを管理するマップ
+
+function createTerrainChunk(chunkX, chunkZ) {
     const geometry = new THREE.BoxGeometry(1, 1, 1);
-    for (let x = -size; x <= size; x++) {
-        for (let z = -size; z <= size; z++) {
-            const y = Math.floor(simplex.noise2D(x / scale, z / scale) * height); // パーリンノイズで高さを計算
-            const material = new THREE.MeshBasicMaterial({ color: y > 0 ? 0x228B22 : 0x1E90FF });
+    const materialMap = { ground: 0x228B22, water: 0x1E90FF };
+    const objects = [];
+    for (let x = 0; x < terrainSize; x++) {
+        for (let z = 0; z < terrainSize; z++) {
+            const worldX = chunkX * terrainSize + x;
+            const worldZ = chunkZ * terrainSize + z;
+            const y = Math.floor(simplex.noise2D(worldX / 10, worldZ / 10) * 5); // パーリンノイズで高さを計算
+
+            const material = new THREE.MeshBasicMaterial({ color: y > 0 ? materialMap.ground : materialMap.water });
             const cube = new THREE.Mesh(geometry, material);
-            cube.position.set(x, y, z);
+            cube.position.set(worldX, y, worldZ);
             scene.add(cube);
+            objects.push(cube);
 
             // 物理ボディも作成
             const shape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
             const body = new CANNON.Body({ mass: 0, shape: shape });
-            body.position.set(x, y, z);
+            body.position.set(worldX, y, worldZ);
             world.addBody(body);
         }
     }
+    terrainChunks.set(`${chunkX},${chunkZ}`, objects); // チャンクのキーで管理
 }
 
-// 地形を生成
-createTerrain(20, 10, 5); // サイズ20、スケール10、高さ5の地形
+function removeTerrainChunk(chunkX, chunkZ) {
+    const key = `${chunkX},${chunkZ}`;
+    if (terrainChunks.has(key)) {
+        const objects = terrainChunks.get(key);
+        objects.forEach(obj => {
+            scene.remove(obj);
+            world.removeBody(obj.body);
+        });
+        terrainChunks.delete(key);
+    }
+}
+
+function updateTerrain() {
+    const newChunk = {
+        x: Math.floor(playerBody.position.x / terrainSize),
+        z: Math.floor(playerBody.position.z / terrainSize)
+    };
+
+    // プレイヤーが新しいチャンクに入ったら地形を更新
+    if (newChunk.x !== currentChunk.x || newChunk.z !== currentChunk.z) {
+        currentChunk = newChunk;
+        // 周囲のチャンクを生成
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dz = -1; dz <= 1; dz++) {
+                const chunkX = newChunk.x + dx;
+                const chunkZ = newChunk.z + dz;
+                if (!terrainChunks.has(`${chunkX},${chunkZ}`)) {
+                    createTerrainChunk(chunkX, chunkZ);
+                }
+            }
+        }
+        // プレイヤーの周囲から外れたチャンクを削除
+        terrainChunks.forEach((_, key) => {
+            const [chunkX, chunkZ] = key.split(',').map(Number);
+            if (Math.abs(chunkX - newChunk.x) > 1 || Math.abs(chunkZ - newChunk.z) > 1) {
+                removeTerrainChunk(chunkX, chunkZ);
+            }
+        });
+    }
+}
 
 // キーボード操作の設定
 const keys = { w: false, a: false, s: false, d: false, space: false };
@@ -72,17 +132,52 @@ document.addEventListener('keyup', (event) => {
     if (event.key in keys) keys[event.key] = false;
 });
 
+// カメラのロックと操作
+document.addEventListener('click', () => {
+    document.body.requestPointerLock(); // クリックでポインタロック
+});
+
 // ゲームループ
 function animate() {
     requestAnimationFrame(animate);
 
-    // プレイヤーの移動
-    const speed = 0.1;
-    if (keys.w) playerBody.velocity.z = -speed;
-    if (keys.s) playerBody.velocity.z = speed;
-    if (keys.a) playerBody.velocity.x = -speed;
-    if (keys.d) playerBody.velocity.x = speed;
-    if (keys.space && playerBody.position.y <= 1) playerBody.velocity.y = 5; // 簡易ジャンプ
+    // プレイヤーの移動と水中判定
+    let speed = 0.1;
+    let jumpPower = 5;
+    const playerHeight = playerBody.position.y;
+    const waterLevel = 0; // 水のレベル
+
+    if (playerHeight <= waterLevel) {
+        // 水中では移動速度を低下させ、ジャンプ力を低下させる
+        speed = 0.05;
+        jumpPower = 1;
+    }
+
+    // 視点の方向に応じてプレイヤーの移動方向を決定
+    const forward = new THREE.Vector3(
+        Math.sin(yaw) * Math.cos(pitch),
+        0,
+        Math.cos(yaw) * Math.cos(pitch)
+    ).normalize();
+    const right = new THREE.Vector3(
+        Math.sin(yaw - Math.PI / 2),
+        0,
+        Math.cos(yaw - Math.PI / 2)
+    ).normalize();
+
+    playerBody.velocity.set(0, playerBody.velocity.y, 0); // キー入力がない場合、移動を停止
+
+    if (keys.w) playerBody.velocity.vadd(forward.scale(speed), playerBody.velocity);
+    if (keys.s) playerBody.velocity.vadd(forward.scale(-speed), playerBody.velocity);
+    if (keys.a) playerBody.velocity.vadd(right.scale(-speed), playerBody.velocity);
+    if (keys.d) playerBody.velocity.vadd(right.scale(speed), playerBody.velocity);
+    if (keys.space && playerBody.velocity.y === 0) playerBody.velocity.y = jumpPower; // 簡易ジャンプ
+
+    // カメラの位置と視点を更新
+    const cameraOffset = new THREE.Vector3(0, 1.5, 0);
+    const cameraPosition = playerBody.position.vadd(cameraOffset);
+    camera.position.copy(cameraPosition);
+    camera.lookAt(cameraPosition.vadd(forward));
 
     // 物理エンジンの更新
     world.step(1 / 60);
@@ -90,14 +185,14 @@ function animate() {
     // 3Dオブジェクトの位置を物理ボディに合わせる
     playerMesh.position.copy(playerBody.position);
 
-    // カメラ追従
-    camera.position.x = playerBody.position.x;
-    camera.position.y = playerBody.position.y + 3;
-    camera.position.z = playerBody.position.z + 5;
-    camera.lookAt(playerMesh.position);
+    // 地形の更新
+    updateTerrain();
 
     renderer.render(scene, camera);
 }
+
+// 初期地形を生成
+createTerrainChunk(0, 0); // プレイヤーのいるチャンクを初期化
 
 animate();
 </script>
