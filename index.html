@@ -68,23 +68,23 @@
         /* ゲームプレイシーン */
         .game-play-scene {
             display: none;
-            position: fixed; /* フィックスドで固定表示 */
+            position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: rgba(0, 0, 0, 0.8); /* 背景の暗いオーバーレイ */
+            background-color: rgba(0, 0, 0, 0.8);
             color: white;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            z-index: 100; /* 背景より前面に */
+            z-index: 100;
         }
         .play-scene-active {
             display: flex;
         }
         .game-play-scene iframe {
-            max-width: 90vw; /* ウィンドウサイズに応じて自動リサイズ */
+            max-width: 90vw;
             max-height: 90vh;
             border: none;
         }
@@ -123,20 +123,20 @@
 
     <!-- ゲームセクション -->
     <section id="games" class="games-section">
-        <div class="game-card" onclick="playGame('kipon')">
-            <img src="https://via.placeholder.com/200" alt="Kipon">
+        <div class="game-card" onclick="playGame('wordwolf')">
+            <img src="images/wordwolf.png" alt="ワードウルフ">
             <h3>ワードウルフ</h3>
             <p>offline・人数:3〜</p>
             <button>プレイする</button>
         </div>
-        <div class="game-card" onclick="playGame('robotrix')">
-            <img src="https://via.placeholder.com/200" alt="Robotrix">
+        <div class="game-card" onclick="playGame('2048')">
+            <img src="images/2048.png" alt="2048">
             <h3>2048</h3>
             <p>offline・人数:1</p>
             <button>プレイする</button>
         </div>
-        <div class="game-card" onclick="playGame('treasurebox')">
-            <img src="https://via.placeholder.com/200" alt="Treasure Box">
+        <div class="game-card" onclick="playGame('blockbreaker')">
+            <img src="images/blockbreaker.png" alt="ブロック崩し">
             <h3>ブロック崩し</h3>
             <p>offline・人数:1</p>
             <button>プレイする</button>
@@ -150,21 +150,21 @@
     </section>
 
     <!-- ゲームプレイシーン -->
-    <section id="kipon-play" class="game-play-scene">
+    <section id="wordwolf-play" class="game-play-scene">
         <h2>ワードウルフをプレイ中</h2>
-        <iframe src="games/kipon.html"></iframe>
+        <iframe src="games/wordwolf.html"></iframe>
         <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
     </section>
 
-    <section id="robotrix-play" class="game-play-scene">
+    <section id="2048-play" class="game-play-scene">
         <h2>2048をプレイ中</h2>
-        <iframe src="games/robotrix.html"></iframe>
+        <iframe src="games/2048.html"></iframe>
         <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
     </section>
 
-    <section id="treasurebox-play" class="game-play-scene">
+    <section id="blockbreaker-play" class="game-play-scene">
         <h2>ブロック崩しをプレイ中</h2>
-        <iframe src="games/treasurebox.html"></iframe>
+        <iframe src="games/blockbreaker.html"></iframe>
         <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
     </section>
 
