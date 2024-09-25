@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スロットゲーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            padding: 0;
+        }
+
+        .payout-table {
+            margin: 50px auto;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        .payout-table table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .payout-table th, .payout-table td {
+            border: 2px solid #000;
+            padding: 10px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .payout-table th {
+            background-color: #f2f2f2;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+            flex-wrap: wrap;
+        }
+
+        .reel {
+            width: 70px;
+            height: 70px;
+            font-size: 36px;
+            border: 2px solid #000;
+            margin: 0 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .reel.stopping {
+            animation: stop-spin 0.5s ease-out;
+        }
+
+        .reel span {
+            position: absolute;
+        }
+
+        .reel.spin span {
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes stop-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .controls {
+            margin-top: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls.hidden-start #start {
+            display: none;
+        }
+
+        .controls.hidden-start #bet {
+            margin-left: 0;
+        }
+
+        button, input {
+            font-size: 20px;
+            margin: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ddd;
+            transform: scale(1.05);
+        }
+
+        input {
+            width: 80px;
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        @media (max-width: 600px) {
+            .payout-table th, .payout-table td {
+                font-size: 16px;
+                padding: 8px;
+            }
+
+            .reel {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+                margin: 0 10px;
+            }
+
+            button, input {
+                font-size: 18px;
+                padding: 8px 16px;
+                margin: 5px;
+            }
+
+            .slot-machine {
+                margin-top: 20px;
+            }
+
+            .controls {
+                margin-top: 20px;
+            }
+
+            .status {
+                font-size: 16px;
+            }
+        }
+
+        @keyframes win {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes lose {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-10px); }
+        }
+
+        .win-animation {
+            animation: win 0.5s ease-in-out;
+        }
+
+        .lose-animation {
+            animation: lose 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="payout-table">
+        <h2>役と倍率</h2>
+        <table>
+            <tr>
+                <th>AAA</th>
+                <th>BBB</th>
+                <th>CCC</th>
+                <th>DDD</th>
+                <th>ABC</th>
+                <th>ACB</th>
+                <th>BAC</th>
+                <th>BCA</th>
+                <th>CAB</th>
+                <th>CBA</th>
+            </tr>
+            <tr>
+                <td>4倍</td>
+                <td>3倍</td>
+                <td>2倍</td>
+                <td>1倍</td>
+                <td>5倍</td>
+                <td>3倍</td>
+                <td>3倍</td>
+                <td>3倍</td>
+                <td>3倍</td>
+                <td>3倍</td>
+            </tr>
+        </table>
+    </div>
+    <div class="slot-machine">
+        <div class="reel" id="reel1">A</div>
+        <div class="reel" id="reel2">A</div>
+        <div class="reel" id="reel3">A</div>
+    </div>
+    <div class="controls">
+        <label for="bet">ベット額: </label>
+        <input type="number" id="bet" min="1" max="100" value="10">
+        <button id="start">Start</button>
+        <button id="stop1" disabled>◾️</button>
+        <button id="stop2" disabled>◾️</button>
+        <button id="stop3" disabled>◾️</button>
+        <button id="reroll" disabled>↻</button>
+    </div>
+    <div class="status">
+        <p>残りのお金: <span id="money">10000</span></p>
+        <p>試作品だよ^o^</p>
+        <p id="message"></p>
+        <p>最高記録: <span id="highest-money">0</span></p>
+    </div>
+    <script>
+        /// スロットマシンのリール要素を取得
+        const reels = [
+            document.getElementById('reel1'),
+            document.getElementById('reel2'),
+            document.getElementById('reel3')
+        ];
+
+        /// リール停止ボタンを取得
+        const stopButtons = [
+            document.getElementById('stop1'),
+            document.getElementById('stop2'),
+            document.getElementById('stop3')
+        ];
+
+        /// リトライボタン、スタートボタン、ベット入力フィールドを取得
+        const rerollButton = document.getElementById('reroll');
+        const startButton = document.getElementById('start');
+        const betInput = document.getElementById('bet');
+
+        /// 所持金やメッセージを表示する要素を取得
+        const moneyDisplay = document.getElementById('money');
+        const messageDisplay = document.getElementById('message');
+        const controlsContainer = document.querySelector('.controls');
+
+        /// スロットマシンで使用するシンボルの定義
+        const symbols = ['A', 'B', 'C', 'D'];
+
+        /// リールの回転を管理するためのタイマー
+        let intervals = [null, null, null];
+
+        /// ゲーム開始時の所持金を設定
+        let money = 10000;
+
+        /// 現在のベット額を保持する変数
+        let currentBet = 0;
+
+        /// 役と倍率のマッピングを定義
+        const payoutMultipliers = {
+            'AAA': 4,
+            'BBB': 3,
+            'CCC': 2,
+            'DDD': 1,
+            'ABC': 5,
+            'ACB': 3,
+            'BAC': 3,
+            'BCA': 3,
+            'CAB': 3,
+            'CBA': 3
+        };
+
+        /// 最高記録をローカルストレージから取得して表示
+        let highestMoney = localStorage.getItem('highestMoney') || 0;
+        document.getElementById('highest-money').textContent = highestMoney;
+
+        /// リールの表示を初期状態にリセットする関数
+        function resetReels() {
+            for (let i = 0; i < reels.length; i++) {
+                reels[i].innerHTML = `<span>${symbols[0]}</span>`;
+                reels[i].style.animation = 'none';
+                reels[i].classList.remove('stopping', 'win-animation', 'lose-animation', 'spin');
+            }
+        }
+
+        /// リールの回転を開始する関数
+        function startReel(reelIndex) {
+            reels[reelIndex].classList.add('spin'); /// 回転アニメーションを追加
+            intervals[reelIndex] = setInterval(() => {
+                const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                reels[reelIndex].innerHTML = `<span>${randomSymbol}</span>`;
+            }, 250);
+        }
+
+        /// リールの回転を停止する関数
+        function stopReel(reelIndex) {
+            clearInterval(intervals[reelIndex]);
+            intervals[reelIndex] = null;
+            reels[reelIndex].classList.remove('spin'); /// 回転アニメーションを削除
+            reels[reelIndex].classList.add('stopping'); /// 停止アニメーションを追加
+            checkAllReelsStopped();
+        }
+
+        /// 全リールの回転を開始する関数
+        function startAllReels() {
+            for (let i = 0; i < reels.length; i++) {
+                startReel(i);
+            }
+        }
+
+        /// 全てのリールが停止したかを確認し、停止後の処理を行う関数
+        function checkAllReelsStopped() {
+            if (intervals.every(interval => interval === null)) {
+                enableStopButtons(false); /// 停止ボタンを無効化
+                checkWin(); /// 勝敗の確認
+                startButton.disabled = false; /// スタートボタンを有効化
+                rerollButton.disabled = false; /// リトライボタンを有効化
+                betInput.disabled = false; /// ベット額の変更を再び許可
+            }
+        }
+
+        /// スロットの結果に基づいて勝敗を判定し、所持金を更新する関数
+        function checkWin() {
+            const result = reels.map(reel => reel.textContent).join('');
+            let winnings = 0;
+
+            /// 結果に対応するペイアウト倍率が存在する場合、獲得コインを計算
+            if (payoutMultipliers[result]) {
+                winnings = currentBet * payoutMultipliers[result];
+            }
+
+            /// 勝利時の処理
+            if (winnings > 0) {
+                messageDisplay.textContent = `おめでとう！ あなたは ${winnings} コインを獲得しました！`;
+                reels.forEach(reel => reel.classList.add('win-animation')); /// 勝利アニメーション
+            } else {
+                /// 敗北時の処理
+                messageDisplay.textContent = "残念、もう一度挑戦しましょう。";
+                reels.forEach(reel => reel.classList.add('lose-animation')); /// 敗北アニメーション
+            }
+
+            /// 獲得したコインを所持金に追加
+            money += winnings;
+            moneyDisplay.textContent = money;
+            betInput.max = money;
+
+            /// 最高記録を更新
+            if (money > highestMoney) {
+                highestMoney = money;
+                localStorage.setItem('highestMoney', highestMoney);
+                document.getElementById('highest-money').textContent = highestMoney;
+            }
+        }
+
+        /// リトライボタンが押された時の処理
+        function handleReroll() {
+            // 現在のベット額を再取得
+            currentBet = parseInt(betInput.value);
+
+            // 現在のベット額でリトライが可能か確認
+            if (money >= currentBet) {
+                money -= currentBet;
+                moneyDisplay.textContent = money;
+                messageDisplay.textContent = "";
+                startAllReels();
+                enableStopButtons(true); // 停止ボタンを有効化
+                rerollButton.disabled = true; // リトライボタンを無効化
+                
+                // リトライ時にベット額の変更を禁止
+                betInput.disabled = true;
+                
+                // リトライ時にベット上限を更新
+                betInput.max = money;
+            } else {
+                // 所持金が不足している場合の処理
+                messageDisplay.textContent = "お金が足りません。";
+            }
+        }
+
+        /// リール停止ボタンの有効化/無効化を行う関数
+        function enableStopButtons(enabled) {
+            stopButtons.forEach(button => button.disabled = !enabled);
+        }
+
+        /// スタートボタンが押された時の処理
+        function handleStart() {
+            /// 現在のベット額を取得
+            currentBet = parseInt(betInput.value);
+            
+            /// ベット額が所持金を超えていないか確認
+            if (money >= currentBet) {
+                money -= currentBet;
+                moneyDisplay.textContent = money;
+                messageDisplay.textContent = "";
+                startAllReels();
+                enableStopButtons(true); /// 停止ボタンを有効化
+                startButton.disabled = true; /// スタートボタンを無効化
+                rerollButton.disabled = true; /// リトライボタンを無効化
+                
+                /// ベット額の変更を禁止
+                betInput.disabled = true;
+
+                controlsContainer.classList.add('hidden-start');
+            } else {
+                /// 所持金が不足している場合の処理
+                messageDisplay.textContent = "お金が足りません。";
+            }
+        }
+
+        /// 初期設定: リールリセット、停止ボタン無効化、リトライボタン無効化
+        resetReels();
+        enableStopButtons(false);
+        rerollButton.disabled = true;
+        betInput.max = money;
+
+        /// スタートボタンにイベントリスナーを追加
+        startButton.addEventListener('click', handleStart);
+
+        /// 各リール停止ボタンにイベントリスナーを追加
+        for (let i = 0; i < reels.length; i++) {
+            stopButtons[i].addEventListener('click', () => {
+                stopReel(i);
+            });
+        }
+
+        /// リトライボタンにイベントリスナーを追加
+        rerollButton.addEventListener('click', handleReroll);
+
+        /// ベット額入力フィールドにイベントリスナーを追加
+        betInput.addEventListener('input', () => {
+            /// 所持金を超えるベット額が入力された場合、最大ベット額に設定
+            if (parseInt(betInput.value) > money) {
+                betInput.value = money;
+            }
+        });
+    </script>
+</body>
+</html>
