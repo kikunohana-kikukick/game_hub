@@ -128,79 +128,78 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+  let canvasWidth = window.innerWidth * 0.9;  // letに変更
+    let canvasHeight = window.innerHeight * 0.7;  // letに変更
 
-        const restartButton = document.getElementById('restartButton');
-        const gameMessage = document.getElementById('gameMessage');
-        const restartButtonInMessage = document.getElementById('restartButtonInMessage');
-        const messageText = document.getElementById('messageText');
-        const leftButton = document.getElementById('leftButton');
-        const rightButton = document.getElementById('rightButton');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-        // キャンバスのサイズ調整
-        let canvasWidth = window.innerWidth * 0.9;
-        let canvasHeight = window.innerHeight * 0.7;
+    const restartButton = document.getElementById('restartButton');
+    const gameMessage = document.getElementById('gameMessage');
+    const restartButtonInMessage = document.getElementById('restartButtonInMessage');
+    const messageText = document.getElementById('messageText');
+    const leftButton = document.getElementById('leftButton');
+    const rightButton = document.getElementById('rightButton');
 
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 
-        let paddleHeight = canvasHeight * 0.02;
-        let paddleWidth = canvasWidth * 0.25;
-        const paddleSpeed = canvasWidth * 0.02;
-        let paddleX = (canvas.width - paddleWidth) / 2;
+    let paddleHeight = canvasHeight * 0.02;  // letに変更
+    let paddleWidth = canvasWidth * 0.25;    // letに変更
+    let paddleSpeed = canvasWidth * 0.02;
+    let paddleX = (canvas.width - paddleWidth) / 2;
 
-        const ballRadius = canvasWidth * 0.02;
-        const initialSpeed = canvasWidth * 0.005;
-        const speedIncreaseFactor = 0.001;
-        let balls = [{ x: canvas.width / 2, y: canvas.height - 30, dx: initialSpeed, dy: -initialSpeed }];
+    let ballRadius = canvasWidth * 0.02;     // letに変更
+    const initialSpeed = canvasWidth * 0.005;
+    const speedIncreaseFactor = 0.001;
+    let balls = [{ x: canvas.width / 2, y: canvas.height - 30, dx: initialSpeed, dy: -initialSpeed }];
 
-        const brickRowCount = 5;
-        const brickColumnCount = 9;
-        let brickWidth = (canvasWidth - (brickColumnCount + 1) * 10) / brickColumnCount;
-        let brickHeight = canvasHeight * 0.05;
-        const brickPadding = 10;
-        const brickOffsetTop = 25;
-        let brickOffsetLeft = (canvasWidth - (brickColumnCount * brickWidth + (brickColumnCount - 1) * brickPadding)) / 2;
+    const brickRowCount = 5;
+    const brickColumnCount = 9;
+    let brickWidth = (canvasWidth - (brickColumnCount + 1) * 10) / brickColumnCount; // letに変更
+    let brickHeight = canvasHeight * 0.05;  // letに変更
+    const brickPadding = 10;
+    const brickOffsetTop = 25;
+    let brickOffsetLeft = (canvasWidth - (brickColumnCount * brickWidth + (brickColumnCount - 1) * brickPadding)) / 2;
 
-        let bricks = [];
-        let rightPressed = false;
-        let leftPressed = false;
-        let isGameOver = false;
-        let shieldHealth = 0;
-        let currentLevel = 1;
-        const maxLevel = 3;
+    let bricks = [];
+    let rightPressed = false;
+    let leftPressed = false;
+    let isGameOver = false;
+    let shieldHealth = 0;
+    let currentLevel = 1;
+    const maxLevel = 3;
 
-        let score = 0;
-        const pointsPerBrick = 10;
-        const specialBrickMultiplier = 2; 
-        let highScore = localStorage.getItem('highScore') || 0;
+    let score = 0;
+    const pointsPerBrick = 10;
+    const specialBrickMultiplier = 2;
+    let highScore = localStorage.getItem('highScore') || 0;
 
-        const BRICK_TYPE_NORMAL = 0;
-        const BRICK_TYPE_DOUBLE_BALL = 1;
-        const BRICK_TYPE_SHIELD = 2;
+    const BRICK_TYPE_NORMAL = 0;
+    const BRICK_TYPE_DOUBLE_BALL = 1;
+    const BRICK_TYPE_SHIELD = 2;
 
-        function initGame() {
-            paddleX = (canvas.width - paddleWidth) / 2;
-            isGameOver = false;
-            shieldHealth = 0;
-            initBricks();
-            gameMessage.classList.add('hidden');
-            draw();
-        }
+    function initGame() {
+        paddleX = (canvas.width - paddleWidth) / 2;
+        isGameOver = false;
+        shieldHealth = 0;
+        initBricks();
+        gameMessage.classList.add('hidden');
+        draw();
+    }
 
-        function initBricks() {
-            bricks = [];
-            for (let c = 0; c < brickColumnCount; c++) {
-                bricks[c] = [];
-                for (let r = 0; r < brickRowCount; r++) {
-                    const brickType = Math.random() < 0.05 ? BRICK_TYPE_DOUBLE_BALL :
-                                      Math.random() < 0.05 ? BRICK_TYPE_SHIELD : BRICK_TYPE_NORMAL;
-                    const brickStatus = (brickType === BRICK_TYPE_NORMAL) ? currentLevel : 1;
-                    bricks[c][r] = { x: 0, y: 0, status: brickStatus, type: brickType };
-                }
+          function initBricks() {
+        bricks = [];
+        for (let c = 0; c < brickColumnCount; c++) {
+            bricks[c] = [];
+            for (let r = 0; r < brickRowCount; r++) {
+                const brickType = Math.random() < 0.05 ? BRICK_TYPE_DOUBLE_BALL :
+                                  Math.random() < 0.05 ? BRICK_TYPE_SHIELD : BRICK_TYPE_NORMAL;
+                const brickStatus = (brickType === BRICK_TYPE_NORMAL) ? currentLevel : 1;
+                bricks[c][r] = { x: 0, y: 0, status: brickStatus, type: brickType };
             }
         }
+    }
 
         document.addEventListener("keydown", keyDownHandler, false);
         document.addEventListener("keyup", keyUpHandler, false);
@@ -471,25 +470,25 @@
 
         initGame();
 
-        // 画面サイズに応じてキャンバスをリサイズする
-        window.addEventListener('resize', () => {
-            canvasWidth = window.innerWidth * 0.9;
-            canvasHeight = window.innerHeight * 0.7;
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
+    // キャンバスと関連する値のリサイズ処理
+    window.addEventListener('resize', () => {
+        canvasWidth = window.innerWidth * 0.9;
+        canvasHeight = window.innerHeight * 0.7;
 
-            paddleWidth = canvasWidth * 0.25;
-            paddleHeight = canvasHeight * 0.02;
-            paddleSpeed = canvasWidth * 0.02;
-            ballRadius = canvasWidth * 0.02;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
-            // ブロックのリサイズ
-            brickWidth = (canvasWidth - (brickColumnCount + 1) * 10) / brickColumnCount;
-            brickHeight = canvasHeight * 0.05;
-            brickOffsetLeft = (canvasWidth - (brickColumnCount * brickWidth + (brickColumnCount - 1) * brickPadding)) / 2;
+        paddleWidth = canvasWidth * 0.25;
+        paddleHeight = canvasHeight * 0.02;
+        paddleSpeed = canvasWidth * 0.02;
+        ballRadius = canvasWidth * 0.02;
 
-            draw(); // リサイズ後に再描画
-        });
+        brickWidth = (canvasWidth - (brickColumnCount + 1) * 10) / brickColumnCount;
+        brickHeight = canvasHeight * 0.05;
+        brickOffsetLeft = (canvasWidth - (brickColumnCount * brickWidth + (brickColumnCount - 1) * brickPadding)) / 2;
+
+        draw();  // リサイズ後に再描画
+    });
     </script>
 </body>
 </html>
