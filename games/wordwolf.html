@@ -1,0 +1,622 @@
+<!-- games/kipon.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人狼ゲーム役職確認</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0; /* デフォルトの背景色 */
+            transition: background 1s ease; /* 背景変更の際のアニメーション */
+        }
+
+        .village-win {
+            background-image: url('images/village-win.jpg');
+            background-size: cover;
+            background-color: lightblue; /* 画像がない場合に適用される色 */
+        }
+
+        .werewolf-win {
+            background-image: url('images/werewolf-win.jpg');
+            background-size: cover;
+            background-color: lightcoral; /* 画像がない場合に適用される色 */
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vote-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .selected {
+            background-color: red;
+            color: white;
+        }
+
+        .role {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .theme {
+            font-size: 20px;
+            color: #555;
+        }
+
+        .next-player {
+            font-size: 20px;
+            color: #333;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .final-theme {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        /* Smaller remove button */
+        .remove-button {
+            background-color: red;
+            color: white;
+            border: none;
+            font-size: 12px;
+            padding: 2px 5px;
+            margin-left: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .remove-button:hover {
+            background-color: darkred;
+        }
+
+        /* Particle Style */
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: red;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle-move 1s forwards ease-out;
+        }
+
+        @keyframes particle-move {
+            from {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: translate(var(--x), var(--y)) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 名前入力セクション -->
+        <div id="name-section">
+            <h1>参加者の名前を入力してください</h1>
+            <input type="text" id="player-name" placeholder="名前を入力" required>
+            <button onclick="addPlayer()">追加</button>
+            <ul id="player-list"></ul>
+            <button onclick="startGame()" class="hidden" id="start-game-btn">ゲーム開始</button>
+        </div>
+
+        <!-- 次のプレイヤーに準備を促すセクション -->
+        <div id="ready-section" class="hidden">
+            <p id="next-player" class="next-player"></p>
+            <p>準備OK?</p>
+            <button onclick="showNextRole()">OK</button>
+        </div>
+
+        <!-- 役職表示セクション -->
+        <div id="role-section" class="hidden">
+            <p id="theme-text" class="theme"></p>
+            <button id="confirm-button" onclick="confirmRole()">わかった</button>
+        </div>
+
+        <!-- 投票セクション -->
+        <div id="vote-section" class="hidden">
+            <h2>誰が人狼だったか投票してください</h2>
+            <div id="vote-buttons"></div>
+            <button onclick="checkResult()">投票結果を確認</button>
+        </div>
+
+        <!-- 結果表示セクション -->
+        <div id="final-result-section" class="hidden">
+            <h2 id="final-result"></h2>
+            <div class="final-theme">
+                <p id="village-theme-text"></p>
+                <p id="werewolf-theme-text"></p>
+            </div>
+            <button onclick="resetGame()">再対戦</button>
+        </div>
+    </div>
+
+    <script>
+        let players = [];
+        let roles = [];
+        let currentPlayer = 0;
+        let villageTheme = '';
+        let werewolfTheme = '';
+        let werewolfNames = [];
+        let selectedPlayers = new Set();
+
+        const themes = [
+        { village: 'カレー', werewolf: 'ハヤシライス' },
+    { village: 'バター', werewolf: 'クリームチーズ' },
+    { village: 'フライドチキン', werewolf: '焼き鳥' },
+    { village: '焼きそばパン', werewolf: 'コロッケパン' },
+    { village: 'エスプレッソ', werewolf: 'アメリカーノ' },
+    { village: 'チキンカツ', werewolf: 'メンチカツ' },
+    { village: 'ローストビーフ', werewolf: 'ローストポーク' },
+    { village: 'あんぱん', werewolf: 'クリームパン' },
+    { village: 'みたらし団子', werewolf: 'あんこ団子' },
+    { village: 'ソフトクリーム', werewolf: 'シェイク' },
+    { village: 'ポテトサラダ', werewolf: 'マカロニサラダ' },
+    { village: 'スムージー', werewolf: 'フラッペ' },
+    { village: 'ミネストローネ', werewolf: 'クラムチャウダー' },
+    { village: 'スパム', werewolf: 'ハム' },
+    { village: 'ベイクドポテト', werewolf: 'フライドポテト' },
+    { village: 'オムライス', werewolf: 'チキンライス' },
+    { village: 'お好み焼き', werewolf: 'もんじゃ焼き' },
+    { village: '天ぷら', werewolf: 'フライ' },
+    { village: 'ふりかけご飯', werewolf: '卵かけご飯' },
+    { village: 'ミルクセーキ', werewolf: 'ココア' },
+    { village: '焼きおにぎり', werewolf: 'お茶漬け' },
+    { village: 'コッペパン', werewolf: 'ロールパン' },
+    { village: 'ワインクーラー', werewolf: 'ビールジョッキ' },
+    { village: 'フルーツポンチ', werewolf: 'ゼリー' },
+    { village: 'わかめご飯', werewolf: '五目ご飯' },
+    { village: 'チキン南蛮', werewolf: '油淋鶏' },
+    { village: 'ハンバーグ', werewolf: 'ミートローフ' },
+    { village: 'チキンナゲット', werewolf: 'ミニハンバーガー' },
+    { village: 'チーズドッグ', werewolf: 'ホットドッグ' },
+    { village: 'デミグラスソース', werewolf: 'トマトソース' },
+    { village: 'ツナサラダ', werewolf: 'シーフードサラダ' },
+    { village: 'ロールキャベツ', werewolf: 'ミートボール' },
+    { village: 'きんぴらごぼう', werewolf: 'ひじき煮' },
+    { village: '酢豚', werewolf: 'エビチリ' },
+    { village: 'コーンポタージュ', werewolf: 'ビシソワーズ' },
+    { village: 'ピーマンの肉詰め', werewolf: 'ハンバーグステーキ' },
+    { village: 'バーベキュー', werewolf: 'キャンプファイヤー' },
+    { village: 'タルタルソース', werewolf: 'サウザンドレッシング' },
+    { village: '焼き餃子', werewolf: '水餃子' },
+    { village: 'しょうが焼き', werewolf: '生姜炒め' },
+    { village: 'ペスカトーレ', werewolf: 'ペペロンチーノ' },
+    { village: 'カプレーゼ', werewolf: 'ブルスケッタ' },
+    { village: 'クリームシチュー', werewolf: 'トマトシチュー' },
+    { village: 'ミネラルウォーター', werewolf: '炭酸水' },
+    { village: 'カフェオレ', werewolf: 'カフェラテ' },
+    { village: 'モッツァレラチーズ', werewolf: 'チェダーチーズ' },
+    { village: 'カルボナーラ', werewolf: 'クリームパスタ' },
+    { village: 'シーザーサラダ', werewolf: 'グリーンサラダ' },
+    { village: '天丼', werewolf: 'かつ丼' },
+    { village: 'ちらし寿司', werewolf: '海鮮丼' },
+    { village: '親子丼', werewolf: '他人丼' },
+    { village: '赤飯', werewolf: '白飯' },
+    { village: 'きなこ餅', werewolf: 'あんこ餅' },
+    { village: 'おしるこ', werewolf: 'ぜんざい' },
+    { village: '月見うどん', werewolf: 'たぬきうどん' },
+    { village: 'エビ天', werewolf: 'かき揚げ' },
+    { village: 'スフレ', werewolf: 'ババロア' },
+    { village: 'ショートブレッド', werewolf: 'サブレ' },
+    { village: 'タルト', werewolf: 'パイ' },
+    { village: 'キッシュ', werewolf: 'パスタ' },
+    { village: 'ローストチキン', werewolf: 'ローストターキー' },
+    { village: 'ベイクドビーンズ', werewolf: 'コールスロー' },
+    { village: 'クスクス', werewolf: 'リゾット' },
+    { village: 'チーズフォンデュ', werewolf: 'チョコレートフォンデュ' },
+    { village: 'ポークステーキ', werewolf: 'ラムステーキ' },
+    { village: '焼きとうもろこし', werewolf: '焼き芋' },
+    { village: 'ほうれん草', werewolf: '小松菜' },
+    { village: 'レタス', werewolf: '白菜' },
+    { village: 'ゴーヤ', werewolf: 'きゅうり' },
+    { village: 'みかん', werewolf: '柿' },
+    { village: 'パパイヤ', werewolf: 'マンゴー' },
+    { village: 'イチジク', werewolf: 'ザクロ' },
+    { village: 'ココナッツ', werewolf: 'パイナップル' },
+    { village: 'ホタテ', werewolf: 'サザエ' },
+    { village: '牡蠣', werewolf: 'アサリ' },
+    { village: '海老', werewolf: '蟹' },
+    { village: 'タコ', werewolf: 'イカ' },
+    { village: 'マグロ', werewolf: 'カツオ' },
+    { village: 'サンマ', werewolf: 'アジ' },
+    { village: 'カレイ', werewolf: 'ヒラメ' },
+    { village: 'カツオ', werewolf: 'サバ' },
+    { village: 'バターライス', werewolf: 'ガーリックライス' },
+    { village: '白ワイン', werewolf: '赤ワイン' },
+    { village: 'シャンパン', werewolf: 'スパークリングワイン' },
+    { village: 'ワインクーラー', werewolf: 'ビールジョッキ' },
+    { village: 'ハイボール', werewolf: 'ウィスキー' },
+    { village: 'ジントニック', werewolf: 'モヒート' },
+    { village: 'マティーニ', werewolf: 'カクテル' },
+    { village: 'ホットワイン', werewolf: 'ホットチョコレート' },
+    { village: 'ミントティー', werewolf: 'ジャスミンティー' },
+    { village: 'カモミールティー', werewolf: 'レモングラスティー' },
+    { village: 'サングリア', werewolf: 'カクテル' },
+    { village: 'プロセッコ', werewolf: 'シャンパン' },
+    { village: 'クラフトビール', werewolf: 'ラガービール' },
+    { village: 'シードル', werewolf: 'アップルジュース' },
+    { village: 'ソフトクリーム', werewolf: 'シェイク' },
+    { village: 'アイスキャンディー', werewolf: 'アイスクリーム' },
+    { village: 'ジェラート', werewolf: 'シャーベット' },
+    { village: 'ミルクセーキ', werewolf: 'クリームソーダ' },
+    { village: 'フルーツサンド', werewolf: 'クリームサンド' },
+    { village: 'アフォガート', werewolf: 'ティラミス' },
+    { village: 'クレームブリュレ', werewolf: 'パンナコッタ' },
+    { village: 'マカロン', werewolf: 'エクレア' },
+    { village: 'タルトタタン', werewolf: 'アップルパイ' },
+    { village: 'フルーツケーキ', werewolf: 'パウンドケーキ' },
+    { village: 'ショートケーキ', werewolf: 'チーズケーキ' },
+    { village: 'チーズタルト', werewolf: 'レアチーズケーキ' },
+    { village: 'ババロア', werewolf: 'プリン' },
+    { village: 'ゼリー', werewolf: 'ムース' },
+    { village: 'ホワイトチョコレート', werewolf: 'ミルクチョコレート' },
+    { village: 'ダークチョコレート', werewolf: 'ホワイトチョコレート' },
+    { village: 'カスタードプリン', werewolf: 'カスタードタルト' },
+    { village: 'ロールケーキ', werewolf: 'シフォンケーキ' },
+    { village: 'バウムクーヘン', werewolf: 'カステラ' },
+    { village: 'クッキー', werewolf: 'ビスケット' },
+    { village: 'フィナンシェ', werewolf: 'マドレーヌ' },
+    { village: 'チュロス', werewolf: 'クロワッサン' },
+    { village: 'スコーン', werewolf: 'クッキー' },
+    { village: 'ミルフィーユ', werewolf: 'パリブレスト' },
+    { village: 'ガレット', werewolf: 'クレープ' },
+    { village: 'カスタードタルト', werewolf: 'レモンタルト' },
+    { village: 'パウンドケーキ', werewolf: 'フルーツケーキ' },
+    { village: 'チョコレートケーキ', werewolf: 'ブラウニー' },
+    { village: 'ベイクドチーズケーキ', werewolf: 'レアチーズケーキ' },
+    { village: 'フルーツタルト', werewolf: 'カスタードタルト' },
+    { village: '抹茶アイス', werewolf: 'バニラアイス' },
+    { village: 'チョコアイス', werewolf: 'ストロベリーアイス' },
+    { village: 'ヨーグルトアイス', werewolf: 'シャーベット' },
+    { village: 'シャンパン', werewolf: 'プロセッコ' },
+    { village: 'スコーン', werewolf: 'マフィン' },
+    { village: 'カプチーノ', werewolf: 'モカ' },
+    { village: 'ホットチョコレート', werewolf: 'ホットワイン' },
+    { village: 'ミントチョコレート', werewolf: 'オレンジチョコレート' },
+    { village: 'ビターチョコレート', werewolf: 'ミルクチョコレート' },
+    { village: 'ストロベリーショートケーキ', werewolf: 'レアチーズケーキ' },
+    { village: 'チョコレートムース', werewolf: 'バニラムース' },
+    { village: 'クレームブリュレ', werewolf: 'ティラミス' },
+    { village: 'フルーツゼリー', werewolf: 'フルーツシャーベット' },
+    { village: 'チョコレートフォンデュ', werewolf: 'チーズフォンデュ' },
+    { village: 'チーズケーキ', werewolf: 'ティラミス' },
+    { village: 'チョコレートタルト', werewolf: 'フルーツタルト' },
+    { village: 'マロンケーキ', werewolf: 'モンブラン' },
+    { village: 'アップルパイ', werewolf: 'バナナブレッド' },
+    { village: 'キャロットケーキ', werewolf: 'パウンドケーキ' },
+    { village: '抹茶ロールケーキ', werewolf: '抹茶シフォンケーキ' },
+    { village: 'チョコレートブラウニー', werewolf: 'ホワイトチョコブラウニー' },
+    { village: 'リンゴ', werewolf: 'オレンジ' },
+    { village: '牛乳', werewolf: 'ヨーグルト' },
+    { village: 'パン', werewolf: 'ご飯' },
+    { village: 'コーヒー', werewolf: '紅茶' },
+    { village: 'カレー', werewolf: 'シチュー' },
+    { village: 'ラーメン', werewolf: 'うどん' },
+    { village: 'スイカ', werewolf: 'メロン' },
+    { village: 'バナナ', werewolf: 'マンゴー' },
+    { village: 'チョコレート', werewolf: 'キャンディー' },
+    { village: 'ピザ', werewolf: 'パスタ' },
+    { village: 'サンドイッチ', werewolf: 'ハンバーガー' },
+    { village: '焼き肉', werewolf: 'ステーキ' },
+    { village: 'ケーキ', werewolf: 'アイスクリーム' },
+    { village: 'オムライス', werewolf: 'カツ丼' },
+    { village: 'たこ焼き', werewolf: 'お好み焼き' },
+    { village: '寿司', werewolf: '刺身' },
+    { village: 'エビ', werewolf: 'カニ' },
+    { village: 'トマト', werewolf: 'キュウリ' },
+    { village: 'ジャガイモ', werewolf: 'サツマイモ' },
+    { village: 'トウモロコシ', werewolf: '枝豆' },
+    { village: 'ナス', werewolf: 'ピーマン' },
+    { village: 'ブドウ', werewolf: 'イチゴ' },
+    { village: '桃', werewolf: '梨' },
+    { village: 'レモン', werewolf: 'ライム' },
+    { village: 'スパゲッティ', werewolf: 'ペンネ' },
+    { village: 'ワイン', werewolf: 'シャンパン' },
+    { village: 'ビール', werewolf: 'ウィスキー' },
+    { village: 'オムレツ', werewolf: 'スクランブルエッグ' },
+    { village: 'クリームソーダ', werewolf: 'コーラ' },
+    { village: '餃子', werewolf: '春巻き' },
+    { village: 'ラーメン', werewolf: 'つけ麺' },
+    { village: '味噌汁', werewolf: 'スープ' },
+    { village: 'サラダ', werewolf: 'ピクルス' },
+    { village: 'グラタン', werewolf: 'ドリア' },
+    { village: 'ミートボール', werewolf: 'ハンバーグ' },
+    { village: 'ホットドッグ', werewolf: 'フィッシュサンド' },
+    { village: '焼きそば', werewolf: 'チャーハン' },
+    { village: 'クロワッサン', werewolf: 'ベーグル' },
+    { village: 'ヨーグルト', werewolf: 'プリン' },
+    { village: 'ワッフル', werewolf: 'パンケーキ' },
+    { village: 'クッキー', werewolf: 'ドーナツ' },
+    { village: 'ゼリー', werewolf: 'ババロア' },
+    { village: 'クレープ', werewolf: 'パフェ' },
+    { village: 'オレンジジュース', werewolf: 'リンゴジュース' },
+    { village: 'トースト', werewolf: 'ホットケーキ' },
+    { village: 'カスタード', werewolf: 'ホイップクリーム' },
+    { village: '焼き芋', werewolf: '栗ご飯' },
+    { village: 'おでん', werewolf: '鍋料理' },
+    { village: '豆腐', werewolf: '納豆' },
+    { village: '漬物', werewolf: 'キムチ' },
+    { village: '生姜焼き', werewolf: '照り焼き' },
+    { village: 'チーズ', werewolf: 'バター' },
+    { village: 'アーモンド', werewolf: 'カシューナッツ' },
+    { village: 'ビスケット', werewolf: 'ラスク' },
+    { village: 'フライドポテト', werewolf: 'オニオンリング' },
+    { village: 'アイスティー', werewolf: 'アイスコーヒー' },
+    { village: 'カプチーノ', werewolf: 'ラテ' },
+    { village: 'バター', werewolf: 'マーガリン' },
+    { village: '蜂蜜', werewolf: 'メープルシロップ' },
+    { village: 'ケチャップ', werewolf: 'マヨネーズ' },
+    { village: 'ビーフシチュー', werewolf: 'クリームシチュー' },
+    { village: 'ポップコーン', werewolf: 'スナック菓子' },
+    { village: 'チキンナゲット', werewolf: '唐揚げ' },
+    { village: '唐辛子', werewolf: 'ブラックペッパー' },
+    { village: 'ソーセージ', werewolf: 'ベーコン' },
+    { village: 'ハム', werewolf: 'サラミ' },
+    { village: 'カキ', werewolf: 'ホタテ' },
+    { village: 'サーモン', werewolf: 'マグロ' },
+    { village: 'アジ', werewolf: 'サバ' },
+    { village: 'イカ', werewolf: 'タコ' },
+    { village: 'ハマグリ', werewolf: 'シジミ' },
+    { village: 'エビフライ', werewolf: 'カニクリームコロッケ' },
+    { village: 'カルパッチョ', werewolf: 'タルタル' },
+    { village: 'ペペロンチーノ', werewolf: 'アラビアータ' },
+    { village: 'リゾット', werewolf: 'ピラフ' },
+    { village: '海苔', werewolf: '昆布' },
+    { village: 'マッシュポテト', werewolf: 'グリルポテト' },
+    { village: 'アスパラガス', werewolf: 'ブロッコリー' },
+    { village: 'マヨネーズ', werewolf: 'タルタルソース' },
+    { village: 'レタス', werewolf: 'キャベツ' },
+    { village: 'オリーブオイル', werewolf: 'バルサミコ酢' },
+    { village: 'シュウマイ', werewolf: '肉まん' },
+    { village: 'キウイ', werewolf: 'パパイヤ' },
+    { village: 'ビーフ', werewolf: 'ポーク' },
+    { village: 'ラム肉', werewolf: '鹿肉' },
+    { village: 'ホワイトチョコレート', werewolf: 'ダークチョコレート' },
+    { village: 'タピオカミルクティー', werewolf: 'フルーツジュース' },
+    { village: 'マッシュルーム', werewolf: 'シイタケ' },
+    { village: 'ズッキーニ', werewolf: 'パプリカ' },
+    { village: 'ポテトチップス', werewolf: 'ポップコーン' },
+    { village: 'ヨーグルト', werewolf: 'チーズケーキ' },
+    { village: 'ショートケーキ', werewolf: 'タルト' },
+    { village: 'チーズ', werewolf: 'ヨーグルト' },
+    { village: '抹茶', werewolf: 'ほうじ茶' }
+       
+        ];
+
+        function addPlayer() {
+            const playerName = document.getElementById('player-name').value;
+            if (playerName) {
+                players.push(playerName);
+                document.getElementById('player-name').value = '';
+                updatePlayerList();
+
+                if (players.length >= 3) {
+                    document.getElementById('start-game-btn').classList.remove('hidden');
+                }
+            }
+        }
+
+        function updatePlayerList() {
+            const playerList = document.getElementById('player-list');
+            playerList.innerHTML = '';
+            players.forEach((player, index) => {
+                playerList.innerHTML += `
+                    <li>
+                        ${player}
+                        <button class="remove-button" onclick="removePlayer(${index})">削除</button>
+                    </li>`;
+            });
+        }
+
+        function removePlayer(index) {
+            players.splice(index, 1);
+            updatePlayerList();
+
+            if (players.length < 3) {
+                document.getElementById('start-game-btn').classList.add('hidden');
+            }
+        }
+
+        function startGame() {
+            if (players.length < 3) {
+                alert('3人以上でプレイしてください');
+                return;
+            }
+
+            const numWerewolves = Math.floor(players.length / 3);
+            roles = Array(players.length).fill('村人');
+            werewolfNames = [];
+
+            for (let i = 0; i < numWerewolves; i++) {
+                let wolfIndex;
+                do {
+                    wolfIndex = Math.floor(Math.random() * players.length);
+                } while (roles[wolfIndex] === '人狼');
+                roles[wolfIndex] = '人狼';
+                werewolfNames.push(players[wolfIndex]);
+            }
+
+            const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+            villageTheme = randomTheme.village;
+            werewolfTheme = randomTheme.werewolf;
+
+            document.getElementById('name-section').classList.add('hidden');
+            document.getElementById('ready-section').classList.remove('hidden');
+
+            const nextPlayerName = players[currentPlayer];
+            document.getElementById('next-player').textContent = `${nextPlayerName}さんの番です。`;
+        }
+
+        function showNextRole() {
+            if (currentPlayer < players.length) {
+                const role = roles[currentPlayer];
+                const themeText = role === '人狼' ? werewolfTheme : villageTheme;
+
+                document.getElementById('theme-text').textContent = `お題: ${themeText}`;
+                document.getElementById('role-section').classList.remove('hidden');
+                document.getElementById('ready-section').classList.add('hidden');
+            } else {
+                prepareVoteSection();
+            }
+        }
+
+        function confirmRole() {
+            document.getElementById('role-section').classList.add('hidden');
+            document.getElementById('ready-section').classList.remove('hidden');
+
+            currentPlayer++;
+            if (currentPlayer < players.length) {
+                const nextPlayerName = players[currentPlayer];
+                document.getElementById('next-player').textContent = `${nextPlayerName}さんの番です。`;
+            } else {
+                prepareVoteSection();
+            }
+        }
+
+        function prepareVoteSection() {
+            const voteButtonsDiv = document.getElementById('vote-buttons');
+            voteButtonsDiv.innerHTML = '';
+            players.forEach(player => {
+                const button = document.createElement('button');
+                button.textContent = player;
+                button.classList.add('vote-button');
+                button.onclick = (event) => {
+                    selectPlayer(player, button);
+                    generateParticles(event);
+                };
+                voteButtonsDiv.appendChild(button);
+            });
+
+            document.getElementById('ready-section').classList.add('hidden');
+            document.getElementById('vote-section').classList.remove('hidden');
+        }
+
+        function selectPlayer(player, button) {
+            if (selectedPlayers.has(player)) {
+                selectedPlayers.delete(player);
+                button.classList.remove('selected');
+            } else {
+                selectedPlayers.add(player);
+                button.classList.add('selected');
+            }
+        }
+
+        function checkResult() {
+            const selectedWolves = Array.from(selectedPlayers);
+            const finalResultText = document.getElementById('final-result');
+            const villageThemeText = document.getElementById('village-theme-text');
+            const werewolfThemeText = document.getElementById('werewolf-theme-text');
+
+            const correct = werewolfNames.every(wolf => selectedWolves.includes(wolf)) && werewolfNames.length === selectedWolves.length;
+
+            if (correct) {
+                finalResultText.textContent = `村人陣営勝利！人狼は ${werewolfNames.join(', ')} さんでした。`;
+                document.body.classList.add('village-win');  // 村人勝利時の背景を適用
+            } else {
+                finalResultText.textContent = `村人陣営敗北... 人狼は ${werewolfNames.join(', ')} さんでした。`;
+                document.body.classList.add('werewolf-win');  // 人狼勝利時の背景を適用
+            }
+
+            villageThemeText.textContent = `村人側のお題: ${villageTheme}`;
+            werewolfThemeText.textContent = `人狼側のお題: ${werewolfTheme}`;
+
+            document.getElementById('vote-section').classList.add('hidden');
+            document.getElementById('final-result-section').classList.remove('hidden');
+        }
+
+        function resetGame() {
+            roles = [];
+            currentPlayer = 0;
+            villageTheme = '';
+            werewolfTheme = '';
+            werewolfNames = [];
+            selectedPlayers.clear();
+
+            document.body.classList.remove('village-win', 'werewolf-win');  // 背景をリセット
+            updatePlayerList();
+            document.getElementById('vote-buttons').innerHTML = '';
+            document.getElementById('final-result').textContent = '';
+            document.getElementById('village-theme-text').textContent = '';
+            document.getElementById('werewolf-theme-text').textContent = '';
+
+            document.getElementById('name-section').classList.remove('hidden');
+            document.getElementById('final-result-section').classList.add('hidden');
+            document.getElementById('start-game-btn').classList.remove('hidden');
+        }
+
+        // Particle generation function
+        function generateParticles(event) {
+            const button = event.target;
+            const particlesCount = 20;
+            const particleContainer = document.createDocumentFragment();
+
+            for (let i = 0; i < particlesCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const x = (Math.random() - 0.5) * 100; // Random x movement
+                const y = (Math.random() - 0.5) * 100; // Random y movement
+                particle.style.setProperty('--x', `${x}px`);
+                particle.style.setProperty('--y', `${y}px`);
+                particleContainer.appendChild(particle);
+
+                // Position particle at the center of the button
+                const rect = button.getBoundingClientRect();
+                particle.style.left = `${event.clientX - rect.left}px`;
+                particle.style.top = `${event.clientY - rect.top}px`;
+
+                // Remove particle after animation ends
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
+            }
+
+            button.appendChild(particleContainer);
+        }
+
+        // Add particle effects to all buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', generateParticles);
+        });
+    </script>
+</body>
+
+</html>
