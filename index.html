@@ -3,198 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Minecraft-like Game with Real-time Terrain and Mouse Control</title>
+    <title>Games</title>
     <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { cursor: crosshair; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        header {
+            background-color: #d84527;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+        nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: #d84527;
+            padding: 10px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .hero {
+            text-align: center;
+            margin: 50px 0;
+        }
+        .hero h1 {
+            font-size: 48px;
+        }
+        .games-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px;
+        }
+        .game-card {
+            width: 200px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .game-card img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .game-card h3 {
+            margin: 10px 0;
+        }
+        .game-card button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #d84527;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        /* ゲームプレイシーン */
+        .game-play-scene {
+            display: none;
+            position: fixed; /* フィックスドで固定表示 */
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.8); /* 背景の暗いオーバーレイ */
+            color: white;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 100; /* 背景より前面に */
+        }
+        .play-scene-active {
+            display: flex;
+        }
+        .game-play-scene iframe {
+            max-width: 90vw; /* ウィンドウサイズに応じて自動リサイズ */
+            max-height: 90vh;
+            border: none;
+        }
+        .game-play-scene h2 {
+            font-size: 36px;
+        }
+        .back-home-btn {
+            background-color: #d84527;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
 </head>
 <body>
-<script>
-// シーン、カメラ、レンダラーの設定
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
 
-// 物理エンジンの設定
-const world = new CANNON.World();
-world.gravity.set(0, -9.82, 0); // 重力を設定
+    <!-- ヘッダー -->
+    <header>
+        <h1>Games</h1>
+    </header>
 
-// プレイヤー用の物理ボディの設定
-const playerShape = new CANNON.Sphere(0.5); // 半径0.5の球体
-const playerBody = new CANNON.Body({ mass: 1, shape: playerShape });
-playerBody.position.set(0, 5, 0);
-world.addBody(playerBody);
+    <!-- ナビゲーションメニュー -->
+    <nav>
+        <a href="#home" class="nav-link">ホーム</a>
+        <a href="#games" class="nav-link">ゲーム</a>
+        <a href="#program" class="nav-link">プログラム</a>
+    </nav>
 
-// プレイヤーの3Dオブジェクト
-const playerGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-const playerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-scene.add(playerMesh);
+    <!-- ヒーローセクション -->
+    <div id="home" class="hero">
+        <h1>All Games</h1>
+    </div>
 
-// プレイヤーの初期設定
-const terrainSize = 10; // 各チャンクの大きさ
-let currentChunk = { x: 0, z: 0 }; // 現在のチャンク
+    <!-- ゲームセクション -->
+    <section id="games" class="games-section">
+        <div class="game-card" onclick="playGame('kipon')">
+            <img src="https://via.placeholder.com/200" alt="Kipon">
+            <h3>ワードウルフ</h3>
+            <p>offline・人数:3〜</p>
+            <button>プレイする</button>
+        </div>
+        <div class="game-card" onclick="playGame('robotrix')">
+            <img src="https://via.placeholder.com/200" alt="Robotrix">
+            <h3>2048</h3>
+            <p>offline・人数:1</p>
+            <button>プレイする</button>
+        </div>
+        <div class="game-card" onclick="playGame('treasurebox')">
+            <img src="https://via.placeholder.com/200" alt="Treasure Box">
+            <h3>ブロック崩し</h3>
+            <p>offline・人数:1</p>
+            <button>プレイする</button>
+        </div>
+    </section>
 
-// マウス移動量の管理
-let pitch = 0, yaw = 0;
-document.addEventListener('mousemove', (event) => {
-    const sensitivity = 0.002;
-    yaw -= event.movementX * sensitivity;
-    pitch -= event.movementY * sensitivity;
-    pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch)); // カメラの上下制限
-});
+    <!-- プログラムセクション -->
+    <section id="program" class="hero">
+        <h2>プログラムについて</h2>
+        <p>このセクションにはプログラムの詳細が表示されます。</p>
+    </section>
 
-// パーリンノイズを使ってリアルな地形を生成
-const simplex = new SimplexNoise();
-const terrainChunks = new Map(); // チャンクを管理するマップ
+    <!-- ゲームプレイシーン -->
+    <section id="kipon-play" class="game-play-scene">
+        <h2>ワードウルフをプレイ中</h2>
+        <iframe src="games/kipon.html"></iframe>
+        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
+    </section>
 
-function createTerrainChunk(chunkX, chunkZ) {
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const materialMap = { ground: 0x228B22, water: 0x1E90FF };
-    const objects = [];
-    for (let x = 0; x < terrainSize; x++) {
-        for (let z = 0; z < terrainSize; z++) {
-            const worldX = chunkX * terrainSize + x;
-            const worldZ = chunkZ * terrainSize + z;
-            const y = Math.floor(simplex.noise2D(worldX / 10, worldZ / 10) * 5); // パーリンノイズで高さを計算
+    <section id="robotrix-play" class="game-play-scene">
+        <h2>2048をプレイ中</h2>
+        <iframe src="games/robotrix.html"></iframe>
+        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
+    </section>
 
-            const material = new THREE.MeshBasicMaterial({ color: y > 0 ? materialMap.ground : materialMap.water });
-            const cube = new THREE.Mesh(geometry, material);
-            cube.position.set(worldX, y, worldZ);
-            scene.add(cube);
-            objects.push(cube);
+    <section id="treasurebox-play" class="game-play-scene">
+        <h2>ブロック崩しをプレイ中</h2>
+        <iframe src="games/treasurebox.html"></iframe>
+        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
+    </section>
 
-            // 物理ボディも作成
-            const shape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
-            const body = new CANNON.Body({ mass: 0, shape: shape });
-            body.position.set(worldX, y, worldZ);
-            world.addBody(body);
-        }
-    }
-    terrainChunks.set(`${chunkX},${chunkZ}`, objects); // チャンクのキーで管理
-}
-
-function removeTerrainChunk(chunkX, chunkZ) {
-    const key = `${chunkX},${chunkZ}`;
-    if (terrainChunks.has(key)) {
-        const objects = terrainChunks.get(key);
-        objects.forEach(obj => {
-            scene.remove(obj);
-            world.removeBody(obj.body);
+    <script>
+        // スムーズスクロールのためのJS
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+            });
         });
-        terrainChunks.delete(key);
-    }
-}
 
-function updateTerrain() {
-    const newChunk = {
-        x: Math.floor(playerBody.position.x / terrainSize),
-        z: Math.floor(playerBody.position.z / terrainSize)
-    };
-
-    // プレイヤーが新しいチャンクに入ったら地形を更新
-    if (newChunk.x !== currentChunk.x || newChunk.z !== currentChunk.z) {
-        currentChunk = newChunk;
-        // 周囲のチャンクを生成
-        for (let dx = -1; dx <= 1; dx++) {
-            for (let dz = -1; dz <= 1; dz++) {
-                const chunkX = newChunk.x + dx;
-                const chunkZ = newChunk.z + dz;
-                if (!terrainChunks.has(`${chunkX},${chunkZ}`)) {
-                    createTerrainChunk(chunkX, chunkZ);
-                }
-            }
+        // ゲームプレイシーンを表示する関数
+        function playGame(gameId) {
+            document.querySelectorAll('.game-play-scene').forEach(function(scene) {
+                scene.classList.remove('play-scene-active');
+            });
+            document.getElementById(gameId + '-play').classList.add('play-scene-active');
+            document.body.style.overflow = 'hidden'; // ゲームプレイ中はスクロールを無効化
         }
-        // プレイヤーの周囲から外れたチャンクを削除
-        terrainChunks.forEach((_, key) => {
-            const [chunkX, chunkZ] = key.split(',').map(Number);
-            if (Math.abs(chunkX - newChunk.x) > 1 || Math.abs(chunkZ - newChunk.z) > 1) {
-                removeTerrainChunk(chunkX, chunkZ);
-            }
-        });
-    }
-}
 
-// キーボード操作の設定
-const keys = { w: false, a: false, s: false, d: false, space: false };
+        // HOMEに戻る関数
+        function backToHome() {
+            document.querySelectorAll('.game-play-scene').forEach(function(scene) {
+                scene.classList.remove('play-scene-active');
+            });
+            document.body.style.overflow = 'auto'; // HOMEに戻るとスクロールを再有効化
+        }
+    </script>
 
-document.addEventListener('keydown', (event) => {
-    if (event.key in keys) keys[event.key] = true;
-});
-
-document.addEventListener('keyup', (event) => {
-    if (event.key in keys) keys[event.key] = false;
-});
-
-// カメラのロックと操作
-document.addEventListener('click', () => {
-    document.body.requestPointerLock(); // クリックでポインタロック
-});
-
-// ゲームループ
-function animate() {
-    requestAnimationFrame(animate);
-
-    // プレイヤーの移動と水中判定
-    let speed = 0.1;
-    let jumpPower = 5;
-    const playerHeight = playerBody.position.y;
-    const waterLevel = 0; // 水のレベル
-
-    if (playerHeight <= waterLevel) {
-        // 水中では移動速度を低下させ、ジャンプ力を低下させる
-        speed = 0.05;
-        jumpPower = 1;
-    }
-
-    // 視点の方向に応じてプレイヤーの移動方向を決定
-    const forward = new THREE.Vector3(
-        Math.sin(yaw) * Math.cos(pitch),
-        0,
-        Math.cos(yaw) * Math.cos(pitch)
-    ).normalize();
-    const right = new THREE.Vector3(
-        Math.sin(yaw - Math.PI / 2),
-        0,
-        Math.cos(yaw - Math.PI / 2)
-    ).normalize();
-
-    playerBody.velocity.set(0, playerBody.velocity.y, 0); // キー入力がない場合、移動を停止
-
-    if (keys.w) playerBody.velocity.vadd(forward.scale(speed), playerBody.velocity);
-    if (keys.s) playerBody.velocity.vadd(forward.scale(-speed), playerBody.velocity);
-    if (keys.a) playerBody.velocity.vadd(right.scale(-speed), playerBody.velocity);
-    if (keys.d) playerBody.velocity.vadd(right.scale(speed), playerBody.velocity);
-    if (keys.space && playerBody.velocity.y === 0) playerBody.velocity.y = jumpPower; // 簡易ジャンプ
-
-    // カメラの位置と視点を更新
-    const cameraOffset = new THREE.Vector3(0, 1.5, 0);
-    const cameraPosition = playerBody.position.vadd(cameraOffset);
-    camera.position.copy(cameraPosition);
-    camera.lookAt(cameraPosition.vadd(forward));
-
-    // 物理エンジンの更新
-    world.step(1 / 60);
-
-    // 3Dオブジェクトの位置を物理ボディに合わせる
-    playerMesh.position.copy(playerBody.position);
-
-    // 地形の更新
-    updateTerrain();
-
-    renderer.render(scene, camera);
-}
-
-// 初期地形を生成
-createTerrainChunk(0, 0); // プレイヤーのいるチャンクを初期化
-
-animate();
-</script>
 </body>
 </html>
