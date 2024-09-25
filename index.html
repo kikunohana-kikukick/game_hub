@@ -40,11 +40,12 @@
             display: flex;
             justify-content: center;
             gap: 20px;
+            flex-wrap: wrap;
             margin: 20px;
         }
         .game-card {
-            width: 200px;
-            padding: 20px;
+            width: 300px; /* 幅を大きく */
+            padding: 30px; /* パディングを大きく */
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -58,8 +59,9 @@
             margin: 10px 0;
         }
         .game-card button {
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 15px;
+            padding: 15px; /* ボタンを大きく */
+            font-size: 18px; /* ボタンのテキストを大きく */
             background-color: #d84527;
             color: white;
             border: none;
@@ -85,8 +87,8 @@
             display: flex;
         }
         .game-play-scene iframe {
-            width: 100vw; /* 幅を100%に */
-            height: 100vh; /* 高さを100%に */
+            width: 100vw;
+            height: 100vh;
             border: none;
         }
         .game-play-scene h2 {
@@ -145,6 +147,25 @@
             <p>offline・人数:1</p>
             <button>プレイする</button>
         </div>
+        <!-- 新しいゲームカード -->
+        <div class="game-card" onclick="playGame('slot')">
+            <img src="images/slot.png" alt="スロット">
+            <h3>スロット</h3>
+            <p>offline・人数:1</p>
+            <button>プレイする</button>
+        </div>
+        <div class="game-card" onclick="playGame('3dtictactoe')">
+            <img src="images/3dtictactoe.png" alt="3D三目ならべ">
+            <h3>3D三目ならべ</h3>
+            <p>offline・人数:2</p>
+            <button>プレイする</button>
+        </div>
+        <div class="game-card" onclick="playGame('newgame')">
+            <img src="images/newgame.png" alt="新しいゲーム">
+            <h3>新しいゲーム</h3>
+            <p>offline・人数:1</p>
+            <button>プレイする</button>
+        </div>
     </section>
 
     <!-- プログラムセクション -->
@@ -169,6 +190,25 @@
     <section id="blockbreaker-play" class="game-play-scene">
         <h2>ブロック崩しをプレイ中</h2>
         <iframe src="games/blockbreaker.html"></iframe>
+        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
+    </section>
+
+    <!-- 新しいゲームのプレイシーン -->
+    <section id="slot-play" class="game-play-scene">
+        <h2>スロットをプレイ中</h2>
+        <iframe src="games/slot.html"></iframe>
+        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
+    </section>
+
+    <section id="3dtictactoe-play" class="game-play-scene">
+        <h2>3D三目ならべをプレイ中</h2>
+        <iframe src="games/3dtictactoe.html"></iframe>
+        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
+    </section>
+
+    <section id="newgame-play" class="game-play-scene">
+        <h2>新しいゲームをプレイ中</h2>
+        <iframe src="games/newgame.html"></iframe>
         <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
     </section>
 
