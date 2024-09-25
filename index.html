@@ -10,6 +10,7 @@
             margin: 0;
             padding: 0;
             background-color: #f7f7f7;
+            overflow-x: hidden; /* 横スクロールを無効化 */
         }
         header {
             background-color: #d84527;
@@ -84,8 +85,8 @@
             display: flex;
         }
         .game-play-scene iframe {
-            max-width: 90vw;
-            max-height: 90vh;
+            width: 100vw; /* 幅を100%に */
+            height: 100vh; /* 高さを100%に */
             border: none;
         }
         .game-play-scene h2 {
@@ -99,6 +100,9 @@
             border-radius: 5px;
             margin-top: 20px;
             cursor: pointer;
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
     </style>
 </head>
