@@ -10,19 +10,33 @@
             margin: 0;
             padding: 0;
             background-color: #f7f7f7;
-            overflow-x: hidden; /* 横スクロールを無効化 */
+            overflow-x: hidden;
         }
         header {
             background-color: #d84527;
             padding: 20px;
             text-align: center;
             color: white;
+            position: relative;
+        }
+        header img {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 100%;
+            max-height: 100px; /* ヘッダー画像の最大高さ */
+            object-fit: cover;
         }
         nav {
             display: flex;
             justify-content: space-around;
             background-color: #d84527;
             padding: 10px;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
         }
         nav a {
             color: white;
@@ -31,10 +45,17 @@
         }
         .hero {
             text-align: center;
-            margin: 50px 0;
+            margin: 80px 0; /* 上部のナビゲーションバーに重ならないよう調整 */
+            position: relative;
         }
-        .hero h1 {
-            font-size: 48px;
+        .hero img {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 100%;
+            max-height: 200px; /* ALL GAMEセクションの画像の最大高さ */
+            object-fit: cover;
         }
         .games-section {
             display: flex;
@@ -44,8 +65,8 @@
             margin: 20px;
         }
         .game-card {
-            width: 300px; /* 幅を大きく */
-            padding: 30px; /* パディングを大きく */
+            width: 300px;
+            padding: 30px;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -60,8 +81,8 @@
         }
         .game-card button {
             margin-top: 15px;
-            padding: 15px; /* ボタンを大きく */
-            font-size: 18px; /* ボタンのテキストを大きく */
+            padding: 15px;
+            font-size: 18px;
             background-color: #d84527;
             color: white;
             border: none;
@@ -106,6 +127,30 @@
             top: 20px;
             right: 20px;
         }
+
+        /* ページ最上部・最下部に移動するボタン */
+        .scroll-btn {
+            position: fixed;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #d84527;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        #scroll-up-btn {
+            bottom: 90px;
+        }
+        #scroll-down-btn {
+            bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -113,6 +158,8 @@
     <!-- ヘッダー -->
     <header>
         <h1>Games</h1>
+        <!-- ヘッダーに画像を追加 -->
+        <img src="images/header-image.jpg" alt="Header Image">
     </header>
 
     <!-- ナビゲーションメニュー -->
@@ -125,6 +172,8 @@
     <!-- ヒーローセクション -->
     <div id="home" class="hero">
         <h1>All Games</h1>
+        <!-- ALL GAMES セクションの画像 -->
+        <img src="images/allgames-image.jpg" alt="All Games Image">
     </div>
 
     <!-- ゲームセクション -->
@@ -193,7 +242,6 @@
         <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
     </section>
 
-    <!-- 新しいゲームのプレイシーン -->
     <section id="slot-play" class="game-play-scene">
         <h2>スロットをプレイ中</h2>
         <iframe src="games/slot.html"></iframe>
@@ -212,17 +260,11 @@
         <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
     </section>
 
-    <script>
-        // スムーズスクロールのためのJS
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href');
-                document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
-            });
-        });
+    <!-- スクロールボタン -->
+    <button id="scroll-up-btn" class="scroll-btn" onclick="scrollToTop()">↑</button>
+    <button id="scroll-down-btn" class="scroll-btn" onclick="scrollToBottom()">↓</button>
 
-        // ゲームプレイシーンを表示する関数
+    <script>
         function playGame(gameId) {
             document.querySelectorAll('.game-play-scene').forEach(function(scene) {
                 scene.classList.remove('play-scene-active');
@@ -231,12 +273,21 @@
             document.body.style.overflow = 'hidden'; // ゲームプレイ中はスクロールを無効化
         }
 
-        // HOMEに戻る関数
         function backToHome() {
             document.querySelectorAll('.game-play-scene').forEach(function(scene) {
                 scene.classList.remove('play-scene-active');
             });
             document.body.style.overflow = 'auto'; // HOMEに戻るとスクロールを再有効化
+        }
+
+        // ページ最上部にスクロールする関数
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ページ最下部にスクロールする関数
+        function scrollToBottom() {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
     </script>
 
