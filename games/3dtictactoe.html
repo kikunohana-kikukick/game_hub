@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Tic-Tac-Toe with Win Condition</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        .scene {
+            width: 320px;
+            height: 320px;
+            perspective: 1000px;
+        }
+
+        .cube-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-30deg) rotateY(-45deg);
+            transform-origin: 100px 50px 25px;
+            transition: transform 0.1s ease;
+            user-select: none;
+        }
+
+        .cube {
+            position: absolute;
+            width: 88px;
+            height: 88px;
+            border: none;
+            box-sizing: border-box;
+            transform-style: preserve-3d;
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border: 2px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            color: white;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+
+        .cube-face.front  { transform: rotateY(  0deg) translateZ(44px); }
+        .cube-face.back   { transform: rotateY(180deg) translateZ(44px); }
+        .cube-face.left   { transform: rotateY(-90deg) translateZ(44px); }
+        .cube-face.right  { transform: rotateY( 90deg) translateZ(44px); }
+        .cube-face.top    { transform: rotateX( 90deg) translateZ(44px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(44px); }
+
+        /* 各キューブの位置を黒い立方体(中心)から計算して配置 */
+        .cube:nth-child(1)  { transform: translate3d(-104px, -104px, -104px); }
+        .cube:nth-child(2)  { transform: translate3d(0px, -104px, -104px); }
+        .cube:nth-child(3)  { transform: translate3d(104px, -104px, -104px); }
+        .cube:nth-child(4)  { transform: translate3d(-104px, 0px, -104px); }
+        .cube:nth-child(5)  { transform: translate3d(0px, 0px, -104px); }
+        .cube:nth-child(6)  { transform: translate3d(104px, 0px, -104px); }
+        .cube:nth-child(7)  { transform: translate3d(-104px, 104px, -104px); }
+        .cube:nth-child(8)  { transform: translate3d(0px, 104px, -104px); }
+        .cube:nth-child(9)  { transform: translate3d(104px, 104px, -104px); }
+
+        .cube:nth-child(10) { transform: translate3d(-104px, -104px, 0px); }
+        .cube:nth-child(11) { transform: translate3d(0px, -104px, 0px); }
+        .cube:nth-child(12) { transform: translate3d(104px, -104px, 0px); }
+        .cube:nth-child(13) { transform: translate3d(-104px, 0px, 0px); }
+        .cube:nth-child(14) { transform: translate3d(0px, 0px, 0px); } /* 真ん中の黒い立方体 */
+        .cube:nth-child(15) { transform: translate3d(104px, 0px, 0px); }
+        .cube:nth-child(16) { transform: translate3d(-104px, 104px, 0px); }
+        .cube:nth-child(17) { transform: translate3d(0px, 104px, 0px); }
+        .cube:nth-child(18) { transform: translate3d(104px, 104px, 0px); }
+
+        .cube:nth-child(19) { transform: translate3d(-104px, -104px, 104px); }
+        .cube:nth-child(20) { transform: translate3d(0px, -104px, 104px); }
+        .cube:nth-child(21) { transform: translate3d(104px, -104px, 104px); }
+        .cube:nth-child(22) { transform: translate3d(-104px, 0px, 104px); }
+        .cube:nth-child(23) { transform: translate3d(0px, 0px, 104px); }
+        .cube:nth-child(24) { transform: translate3d(104px, 0px, 104px); }
+        .cube:nth-child(25) { transform: translate3d(-104px, 104px, 104px); }
+        .cube:nth-child(26) { transform: translate3d(0px, 104px, 104px); }
+        .cube:nth-child(27) { transform: translate3d(104px, 104px, 104px); }
+
+        .cube:nth-child(14) .cube-face {
+            background-color: black !important;
+        }
+
+        /* クリック時のアニメーション */
+        @keyframes clickAnimation {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2) rotateY(180deg);
+            }
+            100% {
+                transform: scale(1) rotateY(360deg);
+            }
+        }
+
+        .clicked-animate .cube-face {
+            animation: clickAnimation 0.6s ease;
+            transform-origin: center;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scene">
+        <div class="cube-container" id="cube-container">
+            <div class="cube">
+                <div class="cube-face front"></div>
+                <div class="cube-face back"></div>
+                <div class="cube-face left"></div>
+                <div class="cube-face right"></div>
+                <div class="cube-face top"></div>
+                <div class="cube-face bottom"></div>
+            </div>
+        </div>
+    </div>
+
+    <button id="restart-btn">Restart</button>
+
+    <script>
+        const container = document.getElementById('cube-container');
+        const cubeTemplate = container.children[0];
+        const restartButton = document.getElementById('restart-btn');
+
+        // 初期化
+        for (let i = 1; i < 27; i++) {
+            const newCube = cubeTemplate.cloneNode(true);
+            container.appendChild(newCube);
+        }
+
+        let isCircleTurn = true;
+        const cubes = document.querySelectorAll('.cube');
+        let gameState = Array(27).fill(null);
+
+        cubes.forEach((cube, index) => {
+            cube.addEventListener('click', function() {
+                if (cube.classList.contains('clicked') || index === 13) return;
+
+                cube.classList.add('clicked');
+                cube.classList.add('clicked-animate'); // アニメーションを適用
+                const symbol = isCircleTurn ? '○' : '×';
+                gameState[index] = symbol;
+
+                const faces = cube.querySelectorAll('.cube-face');
+                faces.forEach(face => {
+                    face.textContent = symbol;
+                    face.style.backgroundColor = symbol === '○' ? 'red' : 'blue';
+                });
+
+                if (checkWin(symbol)) {
+                    setTimeout(() => alert(`${symbol} wins!`), 100);
+                }
+
+                isCircleTurn = !isCircleTurn;
+            });
+        });
+
+        restartButton.addEventListener('click', resetGame);
+
+        function resetGame() {
+            gameState = Array(27).fill(null);
+            isCircleTurn = true;
+            cubes.forEach(cube => {
+                cube.classList.remove('clicked', 'clicked-animate');
+                const faces = cube.querySelectorAll('.cube-face');
+                faces.forEach(face => {
+                    face.textContent = '';
+                    face.style.backgroundColor = 'white';
+                });
+            });
+        }
+
+        function checkWin(symbol) {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [9, 10, 11], [12, 14, 14], [15, 16, 17],
+                [18, 19, 20], [21, 22, 23], [24, 25, 26],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [9, 12, 15], [10, 14, 16], [11, 17, 17],
+                [18, 21, 24], [19, 22, 25], [20, 23, 26],
+                [0, 9, 18], [1, 10, 19], [2, 11, 20],
+                [3, 12, 21], [4, 14, 22], [5, 14, 23],
+                [6, 15, 24], [7, 16, 25], [8, 17, 26],
+                [0, 14, 26], [2, 14, 24], [6, 14, 20], [8, 14, 18],
+                [0, 10, 20], [2, 10, 18], [6, 16, 26], [8, 16, 24],
+                [0, 12, 24], [2, 14, 26], [6, 12, 18], [8, 14, 20],
+                [0, 4, 8], [18, 22, 26]
+            ];
+
+            return winningCombinations.some(combination =>
+                combination.every(index => gameState[index] === symbol)
+            );
+        }
+
+        let isDragging = false;
+        let startX, startY;
+        let rotateX = -30;
+        let rotateY = -45;
+
+        document.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.pageX;
+            startY = e.pageY;
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                const deltaX = e.pageX - startX;
+                const deltaY = e.pageY - startY;
+                rotateX += deltaY * 0.2;
+                rotateY += deltaX * 0.2;
+                container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                startX = e.pageX;
+                startY = e.pageY;
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        document.addEventListener('touchstart', function(e) {
+            isDragging = true;
+            startX = e.touches[0].pageX;
+            startY = e.touches[0].pageY;
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (isDragging) {
+                const deltaX = e.touches[0].pageX - startX;
+                const deltaY = e.touches[0].pageY - startY;
+                rotateX += deltaY * 0.2;
+                rotateY += deltaX * 0.2;
+                container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                startX = e.touches[0].pageX;
+                startY = e.touches[0].pageY;
+            }
+        });
+
+        document.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+    </script>
+
+</body>
+</html>
