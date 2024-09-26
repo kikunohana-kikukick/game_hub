@@ -246,6 +246,12 @@
             <p>offline・人数:1</p>
             <button>プレイする</button>
         </div>
+        <div class="game-card" onclick="playGame('nott')">
+            <img src="images/nott.png" alt="not100">
+            <h3>not100</h3>
+            <p>offline・人数:2~</p>
+            <button>プレイする</button>
+        </div>
     </section>
 
     <!-- プログラムセクション -->
@@ -288,11 +294,16 @@
     </section>
 
     <section id="avoid-play" class="game-play-scene">
-        <h2>新しいゲームをプレイ中</h2>
+        <h2>障害物ゲームをプレイ中</h2>
         <iframe src="games/avoid.html"></iframe>
         <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
     </section>
-
+    
+    <section id="avoid-play" class="game-play-scene">
+        <h2>not100をプレイ中</h2>
+        <iframe src="games/nott.html"></iframe>
+        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
+    </section>
     <!-- スクロールボタン -->
     <button id="scroll-up-btn" class="scroll-btn" onclick="scrollToTop()">↑</button>
     <button id="scroll-down-btn" class="scroll-btn" onclick="scrollToBottom()">↓</button>
