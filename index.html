@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games</title>
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -18,15 +21,17 @@
             text-align: center;
             color: white;
             position: relative;
+            height: 150px; /* ヘッダーの高さを固定 */
+            overflow: hidden; /* 見切れさせるためにオーバーフローを隠す */
         }
         header img {
             position: absolute;
-            bottom: 0;
+            bottom: 0; /* 画像が枠に収まらない場合、下側が見切れる */
             left: 50%;
             transform: translateX(-50%);
-            max-width: 100%;
-            max-height: 100px; /* ヘッダー画像の最大高さ */
-            object-fit: cover;
+            width: 100%;
+            height: auto;
+            object-fit: cover; /* 枠より大きい場合、切り取り */
         }
         nav {
             display: flex;
@@ -47,15 +52,17 @@
             text-align: center;
             margin: 80px 0; /* 上部のナビゲーションバーに重ならないよう調整 */
             position: relative;
+            height: 250px; /* ALL GAMEセクションの高さを固定 */
+            overflow: hidden; /* 見切れさせるためにオーバーフローを隠す */
         }
         .hero img {
             position: absolute;
-            bottom: 0;
+            bottom: 0; /* 画像が枠に収まらない場合、下側が見切れる */
             left: 50%;
             transform: translateX(-50%);
-            max-width: 100%;
-            max-height: 200px; /* ALL GAMEセクションの画像の最大高さ */
-            object-fit: cover;
+            width: 100%;
+            height: auto;
+            object-fit: cover; /* 枠より大きい場合、切り取り */
         }
         .games-section {
             display: flex;
@@ -179,7 +186,7 @@
     <!-- ゲームセクション -->
     <section id="games" class="games-section">
         <div class="game-card" onclick="playGame('wordwolf')">
-            <img src="images/word-wolf.png" alt="ワードウルフ">
+            <img src="images/wordwolf.png" alt="ワードウルフ">
             <h3>ワードウルフ</h3>
             <p>offline・人数:3〜</p>
             <button>プレイする</button>
@@ -224,18 +231,6 @@
     </section>
 
     <!-- ゲームプレイシーン -->
-    <section id="wordwolf-play" class="game-play-scene">
-        <h2>ワードウルフをプレイ中</h2>
-        <iframe src="games/wordwolf.html"></iframe>
-        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
-    </section>
-
-    <section id="2048-play" class="game-play-scene">
-        <h2>2048をプレイ中</h2>
-        <iframe src="games/2048.html"></iframe>
-        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
-    </section>
-
     <section id="blockbreaker-play" class="game-play-scene">
         <h2>ブロック崩しをプレイ中</h2>
         <iframe src="games/blockbreaker.html"></iframe>
