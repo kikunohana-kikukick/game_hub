@@ -21,17 +21,17 @@
             text-align: center;
             color: white;
             position: relative;
-            height: 150px; /* ヘッダーの高さを固定 */
-            overflow: hidden; /* 見切れさせるためにオーバーフローを隠す */
+            height: 150px;
+            overflow: hidden;
         }
         header img {
             position: absolute;
-            bottom: 0; /* 画像が枠に収まらない場合、下側が見切れる */
+            bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
             height: auto;
-            object-fit: cover; /* 枠より大きい場合、切り取り */
+            object-fit: cover;
         }
         nav {
             display: flex;
@@ -47,7 +47,7 @@
             color: white;
             text-decoration: none;
             font-size: 16px;
-        }        
+        }
         /* GitHubボタンのスタイル */
         .github-btn {
             display: inline-flex;
@@ -74,19 +74,19 @@
         }
         .hero {
             text-align: center;
-            margin: 80px 0; /* 上部のナビゲーションバーに重ならないよう調整 */
+            margin: 80px 0;
             position: relative;
-            height: 250px; /* ALL GAMEセクションの高さを固定 */
-            overflow: hidden; /* 見切れさせるためにオーバーフローを隠す */
+            height: 250px;
+            overflow: hidden;
         }
         .hero img {
             position: absolute;
-            bottom: 0; /* 画像が枠に収まらない場合、下側が見切れる */
+            bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
             height: auto;
-            object-fit: cover; /* 枠より大きい場合、切り取り */
+            object-fit: cover;
         }
         .games-section {
             display: flex;
@@ -189,7 +189,6 @@
     <!-- ヘッダー -->
     <header>
         <h1>Games</h1>
-        <!-- ヘッダーに画像を追加 -->
         <img src="images/header-image.jpg" alt="Header Image">
     </header>
 
@@ -203,7 +202,6 @@
     <!-- ヒーローセクション -->
     <div id="home" class="hero">
         <h1>All Games</h1>
-        <!-- ALL GAMES セクションの画像 -->
         <img src="images/allgames-image.jpg" alt="All Games Image">
     </div>
 
@@ -227,7 +225,6 @@
             <p>offline・人数:1</p>
             <button>プレイする</button>
         </div>
-        <!-- 新しいゲームカード -->
         <div class="game-card" onclick="playGame('slot')">
             <img src="images/slot.png" alt="スロット">
             <h3>スロット</h3>
@@ -252,77 +249,58 @@
     <section id="program" class="hero">
         <h2>プログラムについて</h2>
         <p></p>
-        <p></p>
         <p>made by kiku_kick</p>
         <p></p>
-        <p></p>
-        <!-- GitHubボタンを追加 -->
         <div class="github-btn-wrapper">
             <a href="https://github.com/CinnabonK/game_hub" class="github-btn" target="_blank">
                 <svg height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true">
                     <path fill="white" fill-rule="evenodd"
-                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.58.82-2.13-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.55.82 1.26.82 2.13 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.45.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                    </path>
                 </svg>
-                このゲームのプログラム置き場
+                GitHub
             </a>
         </div>
     </section>
 
     <!-- ゲームプレイシーン -->
-    <section id="blockbreaker-play" class="game-play-scene">
-        <h2>ブロック崩しをプレイ中</h2>
-        <iframe src="games/blockbreaker.html"></iframe>
-        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
-    </section>
+    <div id="game-play-scene" class="game-play-scene">
+        <h2 id="game-title">Game Title</h2>
+        <iframe id="game-frame"></iframe>
+        <button class="back-home-btn" onclick="closeGame()">ホームに戻る</button>
+    </div>
 
-    <section id="slot-play" class="game-play-scene">
-        <h2>スロットをプレイ中</h2>
-        <iframe src="games/slot.html"></iframe>
-        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
-    </section>
+    <!-- ページの最上部に戻るボタン -->
+    <button class="scroll-btn" id="scroll-up-btn" onclick="scrollToTop()">▲</button>
 
-    <section id="3dtictactoe-play" class="game-play-scene">
-        <h2>3D三目ならべをプレイ中</h2>
-        <iframe src="games/3dtictactoe.html"></iframe>
-        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
-    </section>
-
-    <section id="avoid-play" class="game-play-scene">
-        <h2>新しいゲームをプレイ中</h2>
-        <iframe src="games/avoid.html"></iframe>
-        <button class="back-home-btn" onclick="backToHome()">HOMEに戻る</button>
-    </section>
-
-    <!-- スクロールボタン -->
-    <button id="scroll-up-btn" class="scroll-btn" onclick="scrollToTop()">↑</button>
-    <button id="scroll-down-btn" class="scroll-btn" onclick="scrollToBottom()">↓</button>
+    <!-- ページの最下部に移動するボタン -->
+    <button class="scroll-btn" id="scroll-down-btn" onclick="scrollToBottom()">▼</button>
 
     <script>
-        function playGame(gameId) {
-            document.querySelectorAll('.game-play-scene').forEach(function(scene) {
-                scene.classList.remove('play-scene-active');
-            });
-            document.getElementById(gameId + '-play').classList.add('play-scene-active');
-            document.body.style.overflow = 'hidden'; // ゲームプレイ中はスクロールを無効化
+        function playGame(gameName) {
+            document.getElementById('game-play-scene').classList.add('play-scene-active');
+            document.getElementById('game-title').innerText = gameName;
+            document.getElementById('game-frame').src = gameName + '.html'; // 各ゲームへのリンクに変更
         }
 
-        function backToHome() {
-            document.querySelectorAll('.game-play-scene').forEach(function(scene) {
-                scene.classList.remove('play-scene-active');
-            });
-            document.body.style.overflow = 'auto'; // HOMEに戻るとスクロールを再有効化
+        function closeGame() {
+            document.getElementById('game-play-scene').classList.remove('play-scene-active');
+            document.getElementById('game-frame').src = '';
         }
 
-        // ページ最上部にスクロールする関数
         function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
 
-        // ページ最下部にスクロールする関数
         function scrollToBottom() {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
         }
     </script>
-
 </body>
 </html>
