@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>障害物ゲーム</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 2px solid black;
+            background-color: white;
+        }
+        #restartBtn {
+            display: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #scoreboard {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<button id="restartBtn">リスタート</button>
+<div id="scoreboard">スコア: <span id="score">0</span> | 最高記録: <span id="highScore">0</span></div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const restartBtn = document.getElementById('restartBtn');
+    const scoreDisplay = document.getElementById('score');
+    const highScoreDisplay = document.getElementById('highScore');
+
+    const lines = 10;
+    const lineHeight = canvas.height / lines;
+    const playerX = 50;
+    let playerY = 0;
+    let obstacles = [];
+    let blackItems = [];
+    let gameSpeed = 1000;
+    const minGameSpeed = 500;
+    let playerScore = 0;
+    let gameInterval;
+    let spawnInterval;
+    let scoreInterval;
+    let gameOver = false;
+    let isPoweredUp = false;
+
+    let highScore = localStorage.getItem('highScore') || 0;
+    highScoreDisplay.textContent = highScore;
+
+    const player = {
+        x: playerX,
+        y: playerY * lineHeight + lineHeight / 2 - 10,
+        width: 20,
+        height: 20,
+        color: 'blue',
+        radius: 5
+    };
+
+    class Obstacle {
+        constructor(lineIndex, isFast = false) {
+            this.x = canvas.width;
+            this.y = lineIndex * lineHeight + lineHeight / 2 - 10;
+            this.width = 20;
+            this.height = 20;
+            this.speed = isFast ? 4 : 2;
+            this.color = isFast ? 'orange' : 'red';
+            this.radius = 5;
+        }
+
+        update() {
+            this.x -= this.speed;
+        }
+
+        draw() {
+            drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius, this.color);
+        }
+
+        checkCollision() {
+            return (
+                this.x < player.x + player.width &&
+                this.x + this.width > player.x &&
+                this.y < player.y + player.height &&
+                this.y + this.height > player.y
+            );
+        }
+    }
+
+    class BlackItem {
+        constructor(lineIndex) {
+            this.x = canvas.width;
+            this.y = lineIndex * lineHeight + lineHeight / 2 - 10;
+            this.width = 20;
+            this.height = 20;
+            this.color = 'black';
+            this.speed = 2;
+            this.radius = 5;
+        }
+
+        update() {
+            this.x -= this.speed;
+        }
+
+        draw() {
+            drawRoundedRect(ctx, this.x, this.y, this.width, this.height, this.radius, this.color);
+        }
+
+        checkCollision() {
+            return (
+                this.x < player.x + player.width &&
+                this.x + this.width > player.x &&
+                this.y < player.y + player.height &&
+                this.y + this.height > player.y
+            );
+        }
+    }
+
+    function drawRoundedRect(ctx, x, y, width, height, radius, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + width, y, x + width, y + height, radius);
+        ctx.arcTo(x + width, y + height, x, y + height, radius);
+        ctx.arcTo(x, y + height, x, y, radius);
+        ctx.arcTo(x, y, x + width, y, radius);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    function drawPlayer() {
+        drawRoundedRect(ctx, player.x, player.y, player.width, player.height, player.radius, player.color);
+    }
+
+    function drawLines() {
+        ctx.strokeStyle = 'gray';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < lines; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, i * lineHeight);
+            ctx.lineTo(canvas.width, i * lineHeight);
+            ctx.stroke();
+        }
+    }
+
+    function spawnObstacles() {
+        const usedLines = new Set();
+        const randomFastObstacle = Math.random() < 0.3;
+        while (usedLines.size < 6) {
+            const randomLine = Math.floor(Math.random() * lines);
+            if (!usedLines.has(randomLine)) {
+                const isFast = randomFastObstacle && usedLines.size === 0;
+                obstacles.push(new Obstacle(randomLine, isFast));
+                usedLines.add(randomLine);
+            }
+        }
+
+        // 黒いアイテムを障害物と同じラインに生成しない
+        if (Math.random() < 0.2) {
+            let randomLine;
+            do {
+                randomLine = Math.floor(Math.random() * lines);
+            } while (usedLines.has(randomLine)); // 黒いアイテムが障害物と同じラインに生成されないようにする
+
+            blackItems.push(new BlackItem(randomLine));
+        }
+    }
+
+    function movePlayer(event) {
+        if (!gameOver) {
+            if (event.key === 'ArrowUp' && playerY > 0) {
+                playerY--;
+            } else if (event.key === 'ArrowDown' && playerY < lines - 1) {
+                playerY++;
+            }
+            player.y = playerY * lineHeight + lineHeight / 2 - 10;
+        }
+    }
+
+    function updateGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawLines();
+        drawPlayer();
+
+        obstacles.forEach((obstacle, index) => {
+            obstacle.update();
+            obstacle.draw();
+
+            if (obstacle.checkCollision() && !isPoweredUp) {
+                endGame();
+            }
+
+            if (obstacle.x + obstacle.width < 0) {
+                obstacles.splice(index, 1);
+            }
+        });
+
+        blackItems.forEach((item, index) => {
+            item.update();
+            item.draw();
+
+            if (item.checkCollision()) {
+                blackItems.splice(index, 1);
+                playerScore += 25;
+                scoreDisplay.textContent = playerScore;
+            }
+
+            if (item.x + item.width < 0) {
+                blackItems.splice(index, 1);
+            }
+        });
+    }
+
+    function endGame() {
+        gameOver = true;
+        clearInterval(gameInterval);
+        clearInterval(spawnInterval);
+        clearInterval(scoreInterval);
+        restartBtn.style.display = 'block';
+
+        if (playerScore > highScore) {
+            highScore = playerScore;
+            localStorage.setItem('highScore', highScore);
+            highScoreDisplay.textContent = highScore;
+        }
+    }
+
+    function startGame() {
+        gameOver = false;
+        obstacles = [];
+        blackItems = [];
+        playerScore = 0;
+        scoreDisplay.textContent = playerScore;
+        restartBtn.style.display = 'none';
+        gameSpeed = 1000;
+
+        gameInterval = setInterval(updateGame, 20);
+        spawnInterval = setInterval(() => {
+            spawnObstacles();
+            gameSpeed = Math.max(minGameSpeed, gameSpeed * 0.98);
+        }, gameSpeed);
+
+        scoreInterval = setInterval(() => {
+            playerScore++;
+            scoreDisplay.textContent = playerScore;
+        }, 1000);
+    }
+
+    window.addEventListener('keydown', movePlayer);
+    restartBtn.addEventListener('click', startGame);
+
+    startGame();
+</script>
+
+</body>
+</html>
