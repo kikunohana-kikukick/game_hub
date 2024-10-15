@@ -420,14 +420,21 @@
         // お題と対応する数式のリスト（選択肢は複数の数式、正解は複数可）
         const captchaChallenges = [
             {
-                question: "次のうち、解が-1になるものを選んでください（例: e^iπ）",
+                question: "解が-1になるものを選んでください",
                 formulas: [
                     { expression: "e^iπ", isCorrect: true },
-                    { expression: "1 + 1", isCorrect: false },
-                    { expression: "3 - 4", isCorrect: true },
+                    { expression: "log(e)π", isCorrect: false },
+                    { expression: "isin(π)+cos(π)", isCorrect: true },
                     { expression: "-1 * 1", isCorrect: true },
                     { expression: "2 - 1", isCorrect: false },
-                    { expression: "sqrt(1)", isCorrect: false }
+                    { expression: "sin(π)", isCorrect: false },
+                    { expression: "log(e^1)", isCorrect: false },
+                    { expression: "sin(θ)^2+cos(θ)^2", isCorrect: false },
+                    { expression: "ln(e^-1)", isCorrect: true },
+                    { expression: "行列(cos(π),-sin(π),sin(π),-cos(π))=(x,0,x,0)", isCorrect: true },
+                    { expression: "6*{-∫(0~1)x^2 +∫(-1~1)x^2/4}", isCorrect: true },
+                    { expression: "cosh(iπ)", isCorrect: true },
+                    { expression: "√(1)", isCorrect: false }
                 ]
             },
             {
