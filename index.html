@@ -438,14 +438,19 @@
                 ]
             },
             {
-                question: "次のうち、解が2になるものを選んでください",
+                question: "陽イオンになるやすいもの",
                 formulas: [
-                    { expression: "1 + 1", isCorrect: true },
-                    { expression: "2 + 0", isCorrect: true },
-                    { expression: "3 - 1", isCorrect: true },
-                    { expression: "4 + 1", isCorrect: false },
-                    { expression: "2 * 2", isCorrect: false },
-                    { expression: "1 - 1", isCorrect: false }
+                    { expression: "水素", isCorrect: true },
+                    { expression: "ベリリウム", isCorrect: true },
+                    { expression: "ルビジウム", isCorrect: true },
+                    { expression: "ストロンチウム", isCorrect: true },
+                    { expression: "カルシウム", isCorrect: true },
+                    { expression: "フッ素, isCorrect: false },
+                    { expression: "ヒドロキシド", isCorrect: false },
+                    { expression: "テルル", isCorrect: false },
+                    { expression: "セレン", isCorrect: false },
+                    { expression: "シアン化物", isCorrect: false },
+                    { expression: "二クロム酸", isCorrect: false }
                 ]
             },
             {
@@ -532,10 +537,10 @@
                               currentCorrectAnswers.every(i => selectedAnswers.includes(i));
 
             if (isCorrect) {
-                alert("認証成功！ロボットではありません。");
+                alert("認証成功！あなたがロボットではないことがわかった...かも?w");
                 document.getElementById("captcha-popup").style.display = 'none';
             } else {
-                alert("認証失敗。もう一度お試しください。");
+                alert("認証失敗。アホォウ!");
             }
         }
     </script>
