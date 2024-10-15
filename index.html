@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games</title>
     <style>
-        html {
+        /* ... 既存のスタイル ... */
+ html {
             scroll-behavior: smooth;
         }
         body {
@@ -182,10 +183,48 @@
         #scroll-down-btn {
             bottom: 20px;
         }
+        /* 認証ポップアップ用スタイル */
+        .captcha-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .captcha-box {
+            background-color: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .captcha-images {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .captcha-images img {
+            width: 100px;
+            height: 100px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        .captcha-images img.selected {
+            border-color: red;
+        }
     </style>
 </head>
 <body>
+    <!-- ... 既存のコンテンツ ... -->
 
+  
     <!-- ヘッダー -->
     <header>
         <h1>Games</h1>
@@ -333,8 +372,23 @@
     <button id="scroll-up-btn" class="scroll-btn" onclick="scrollToTop()">↑</button>
     <button id="scroll-down-btn" class="scroll-btn" onclick="scrollToBottom()">↓</button>
 
+    <!-- ロボット認証ポップアップ -->
+    <div id="captcha-popup" class="captcha-popup">
+        <div class="captcha-box">
+            <h2>あなたはロボットですか？</h2>
+            <p id="captcha-question"></p>
+            <div class="captcha-images">
+                <img src="images/image1.png" alt="captcha1" onclick="selectImage(1)">
+                <img src="images/image2.png" alt="captcha2" onclick="selectImage(2)">
+                <img src="images/image3.png" alt="captcha3" onclick="selectImage(3)">
+            </div>
+            <button onclick="verifyCaptcha()">確認</button>
+        </div>
+    </div>
+
+    <!-- スクリプト部分 -->
     <script>
-        function playGame(gameId) {
+              function playGame(gameId) {
             document.querySelectorAll('.game-play-scene').forEach(function(scene) {
                 scene.classList.remove('play-scene-active');
             });
@@ -363,7 +417,70 @@
     function openGameLink(blobUrl) {
         window.open(blobUrl, '_blank');
     }
+        // 画像の解答（例: 1が正解）
+        const correctAnswer = 1; 
+        let selectedImage = null;
+
+        // 任意の問題を設定
+        const captchaQuestions = [
+            "次のうち、解が-1になる画像を選んでください（例: e^iπ）",
+            "もっとも小さい数を選んでください",
+            "赤い画像を選んでください"
+        ];
+
+        // ページ読み込み時にポップアップと問題を表示
+        window.onload = function() {
+            document.getElementById("captcha-question").textContent = captchaQuestions[Math.floor(Math.random() * captchaQuestions.length)];
+            document.getElementById("captcha-popup").style.display = 'flex';
+        }
+
+        // 画像を選択する処理
+        function selectImage(imageNumber) {
+            document.querySelectorAll('.captcha-images img').forEach(img => {
+                img.classList.remove('selected');
+            });
+            selectedImage = imageNumber;
+            document.querySelector('.captcha-images img:nth-child(' + imageNumber + ')').classList.add('selected');
+        }
+
+        // CAPTCHA検証
+        function verifyCaptcha() {
+            if (selectedImage === correctAnswer) {
+                alert("認証成功！ロボットではありません。");
+                document.getElementById("captcha-popup").style.display = 'none';
+            } else {
+                alert("認証失敗。もう一度お試しください。");
+            }
+        }
     </script>
 
+    <!-- 既存のスクリプトやコンテンツ -->
+    <script>
+        // ページ最上部にスクロールする関数
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ページ最下部にスクロールする関数
+        function scrollToBottom() {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        // ゲームのプレイ中シーン
+        function playGame(gameId) {
+            document.querySelectorAll('.game-play-scene').forEach(function(scene) {
+                scene.classList.remove('play-scene-active');
+            });
+            document.getElementById(gameId + '-play').classList.add('play-scene-active');
+            document.body.style.overflow = 'hidden'; // ゲームプレイ中はスクロールを無効化
+        }
+
+        function backToHome() {
+            document.querySelectorAll('.game-play-scene').forEach(function(scene) {
+                scene.classList.remove('play-scene-active');
+            });
+            document.body.style.overflow = 'auto'; // HOMEに戻るとスクロールを再有効化
+        }
+    </script>
 </body>
 </html>
