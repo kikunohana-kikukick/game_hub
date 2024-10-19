@@ -1,1 +1,1 @@
-https://cinnabonk.github.io/game_hub/
+https://kikunohana-kikukick.github.io/game_hub/
